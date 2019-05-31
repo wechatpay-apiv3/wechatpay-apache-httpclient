@@ -129,9 +129,10 @@ public class HttpClientBuilderTest {
   public void postRepeatableEntityTest() throws IOException {
     HttpPost httpPost = new HttpPost(
         "https://api.mch.weixin.qq.com/v3/marketing/favor/users/oHkLxt_htg84TUEbzvlMwQzVDBqo/coupons");
+
+    // NOTE: 建议指定charset=utf-8。低于4.4.6版本的HttpCore，不能正确的设置字符集，可能导致签名错误
     StringEntity reqEntity = new StringEntity(
         reqdata, ContentType.create("application/json", "utf-8"));
-    reqEntity.setContentType("application/json");
     httpPost.setEntity(reqEntity);
     httpPost.addHeader("Accept", "application/json");
 
