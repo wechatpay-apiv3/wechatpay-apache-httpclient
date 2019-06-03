@@ -8,22 +8,61 @@
 
 ## 项目状态
 
-当前版本为测试版，尚没经过严格的功能和兼容性测试。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性。由此带来的风险，由商户自行承担。
+当前版本`0.1.4-SNAPSHOT`为预览版，尚没经过严格的功能和兼容性测试。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性。由此带来的风险，由商户自行承担。
 
 ## 环境要求
 
-我们开发和测试使用的环境如下。
-
 + Java 1.8
-+ Apache HttpClient 4.5.8
 
-根据所依赖的接口，Apache HttpClient的版本大于4.3.1即可以使用，建议使用4.4以上版本。
+## 安装
+
+### Gradle
+
+在你的`build.gradle`文件中加入如下的信息
+
+```groovy
+repositories {
+    ...
+    maven { url 'https://jitpack.io' }
+}
+...
+dependencies {
+    implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.1.4-SNAPSHOT'
+    ...
+}
+```
+
+### Maven
+
+加入JitPack仓库
+
+```xml
+	<repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+```
+
+加入以下依赖
+
+```xml
+	<dependency>
+	    <groupId>com.github.wechatpay-apiv3</groupId>
+	    <artifactId>wechatpay-apache-httpclient</artifactId>
+	    <version>0.1.4-SNAPSHOT</version>
+	</dependency>
+```
 
 ## 开始
 
 如果你使用的是`HttpClientBuilder`或者`HttpClients#custom()`来构造`HttpClient`，你可以直接替换为`WechatPayHttpClientBuilder`。我们提供相应的方法，可以方便的传入商户私钥和微信支付平台证书等信息。
 
 ```java
+import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
+
+//...
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
         .withWechatpay(wechatpayCertificates);
@@ -41,6 +80,10 @@ HttpResponse response = httpClient.execute(...);
 当默认的本地签名和验签方式不适合你的系统时，你可以通过实现`Signer`或者`Verifier`来定制签名和验签。比如，你的系统把商户私钥集中存储，业务系统需通过远程调用进行签名，你可以这样做。
 
 ```java
+import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
+import com.wechat.pay.contrib.apache.httpclient.Credentials;
+
+// ...
 Credentials credentials = new WechatPay2Credentials(merchantId, new Signer() {
   @Override
   public Signer.SignatureResult sign(byte[] message) {
@@ -66,6 +109,10 @@ CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
 ```
 
 **注意**：业务请求请使用标准的初始化流程，务必验证应答签名。
+
+### 证书和回调解密需要的AesGcm解密在哪里？
+
+请参考[AesUtil.Java](https://github.com/wechatpay-apiv3/wechatpay-apache-httpclient/blob/master/src/main/java/com/wechat/pay/contrib/apache/httpclient/util/AesUtil.java)。
 
 ## 联系我们
 
