@@ -1,11 +1,13 @@
 plugins {
     id 'java-library'
+    id 'maven'
 }
 
-group 'com.wechat.pay'
+group 'com.github.wechatpay-apiv3'
 version '0.1.4'
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     jcenter()
@@ -31,4 +33,32 @@ jar {
                 'Export-Package': 'com.wechat.pay.*'
         )
     }
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+install {
+    repositories.mavenInstaller {
+        pom.project {
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+        }
+    }
+}
+
+wrapper {
+    gradleVersion = "5.4.1"
+    distributionType = Wrapper.DistributionType.ALL
 }
