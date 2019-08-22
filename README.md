@@ -95,6 +95,33 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withWechatpay(wechatpayCertificates);
 ```
 
+### 自动更新证书功能
+
+可使用 AutoUpdateCertificatesVerifier 类，该类于原 CertificatesVerifier 上增加证书的**超时自动更新**（默认与上次更新时间超过一小时后自动更新），并会在首次创建时，进行证书更新。
+
+示例代码：
+
+```java
+//...
+
+AutoUpdateCertificatesVerifier verifier = new AutoUpdateCertificatesVerifier(
+        wechatpayCertificates,
+        new WechatPay2Credentials(merchantId, new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
+        apiV3Key.getBytes("utf-8"));
+
+
+WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
+        .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
+        .withValidator(new WechatPay2Validator(verifier))
+// ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
+
+// 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签，并进行证书自动更新
+HttpClient httpClient = builder.build();
+
+// 后面跟使用Apache HttpClient一样
+HttpResponse response = httpClient.execute(...);
+```
+
 ## 常见问题
 
 ### 如何下载平台证书？

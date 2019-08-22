@@ -15,10 +15,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -67,6 +64,8 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     this.apiV3Key = apiV3Key;
     this.instant = Instant.now();
     this.minutesInterval = minutesInterval;
+    //构造时更新证书
+    autoUpdateCert();
   }
 
   @Override
@@ -104,8 +103,8 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
           log.warn("Cert list is empty");
           return;
         }
-
-        mergeAndCheckCerts(newCertList);
+        this.certList = newCertList;
+        this.verifier = new CertificatesVerifier(certList);
       } else {
         log.warn("Auto update cert failed, statusCode = " + statusCode + ",body = " + body);
       }
@@ -115,33 +114,10 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
   }
 
   /**
-   * 合并证书并检查是否过期
-   */
-  private void mergeAndCheckCerts(List<X509Certificate> newCertList) {
-    //去重
-    Set<X509Certificate> set = new HashSet<>();
-    set.addAll(newCertList);
-    set.addAll(this.certList);
-    this.certList = new ArrayList<>(set);
-    //去掉过期证书
-    Iterator<X509Certificate> iterator = certList.iterator();
-    while (iterator.hasNext()) {
-      X509Certificate cert = iterator.next();
-      try {
-        cert.checkValidity();
-      } catch (CertificateExpiredException | CertificateNotYetValidException e) {
-        iterator.remove();
-      }
-    }
-    this.verifier = new CertificatesVerifier(this.certList);
-  }
-
-  /**
    * 反序列化证书并解密
    */
   private List<X509Certificate> deserializeToCerts(byte[] apiV3Key, String body)
       throws GeneralSecurityException, IOException {
-    //AES加密
     AesUtil decryptor = new AesUtil(apiV3Key);
     ObjectMapper mapper = new ObjectMapper();
     JsonNode dataNode = mapper.readTree(body).get("data");
@@ -159,6 +135,11 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
         X509Certificate x509Cert = PemUtil
             .loadCertificate(new ByteArrayInputStream(cert.getBytes("utf-8")));
+        try {
+          x509Cert.checkValidity();
+        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+          continue;
+        }
         newCertList.add(x509Cert);
       }
     }
