@@ -65,7 +65,11 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     this.instant = Instant.now();
     this.minutesInterval = minutesInterval;
     //构造时更新证书
-    autoUpdateCert();
+    try {
+      autoUpdateCert();
+    } catch (IOException | GeneralSecurityException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
@@ -76,6 +80,8 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
           autoUpdateCert();
           //更新时间
           instant = Instant.now();
+        } catch (GeneralSecurityException | IOException e) {
+          log.warn("Auto update cert failed, exception = " + e);
         } finally {
           lock.unlock();
         }
@@ -84,34 +90,31 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     return verifier.verify(serialNumber, message, signature);
   }
 
-  private void autoUpdateCert() {
+  private void autoUpdateCert() throws IOException, GeneralSecurityException {
     CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
         .withCredentials(credentials)
         .withValidator(new WechatPay2Validator(new CertificatesVerifier(this.certList)))
         .build();
 
-    try {
-      HttpGet httpGet = new HttpGet(CertDownloadPath);
-      httpGet.addHeader("Accept", "application/json");
+    HttpGet httpGet = new HttpGet(CertDownloadPath);
+    httpGet.addHeader("Accept", "application/json");
 
-      CloseableHttpResponse response = httpClient.execute(httpGet);
-      int statusCode = response.getStatusLine().getStatusCode();
-      String body = EntityUtils.toString(response.getEntity());
-      if (statusCode == 200) {
-        List<X509Certificate> newCertList = deserializeToCerts(apiV3Key, body);
-        if (newCertList.isEmpty()) {
-          log.warn("Cert list is empty");
-          return;
-        }
-        this.certList = newCertList;
-        this.verifier = new CertificatesVerifier(certList);
-      } else {
-        log.warn("Auto update cert failed, statusCode = " + statusCode + ",body = " + body);
+    CloseableHttpResponse response = httpClient.execute(httpGet);
+    int statusCode = response.getStatusLine().getStatusCode();
+    String body = EntityUtils.toString(response.getEntity());
+    if (statusCode == 200) {
+      List<X509Certificate> newCertList = deserializeToCerts(apiV3Key, body);
+      if (newCertList.isEmpty()) {
+        log.warn("Cert list is empty");
+        return;
       }
-    } catch (GeneralSecurityException | IOException e) {
-      log.warn("Auto update cert failed, exception = " + e);
+      this.certList = newCertList;
+      this.verifier = new CertificatesVerifier(certList);
+    } else {
+      log.warn("Auto update cert failed, statusCode = " + statusCode + ",body = " + body);
     }
   }
+
 
   /**
    * 反序列化证书并解密
