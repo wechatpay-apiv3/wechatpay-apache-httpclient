@@ -62,7 +62,6 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     this.verifier = new CertificatesVerifier(certList);
     this.credentials = credentials;
     this.apiV3Key = apiV3Key;
-    this.instant = Instant.now();
     this.minutesInterval = minutesInterval;
     //构造时更新证书
     try {
@@ -74,7 +73,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
   @Override
   public boolean verify(String serialNumber, byte[] message, String signature) {
-    if (Duration.between(Instant.now(), instant).toMinutes() >= minutesInterval) {
+    if (instant == null || Duration.between(instant, Instant.now()).toMinutes() >= minutesInterval) {
       if (lock.tryLock()) {
         try {
           autoUpdateCert();
