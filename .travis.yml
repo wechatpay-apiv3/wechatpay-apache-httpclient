@@ -1,1 +1,4 @@
 language: java
+install: true
+script: gradle build
+jdk: oraclejdk8
