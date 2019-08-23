@@ -1,4 +1,5 @@
-# wechatpay-apache-httpclient
+# wechatpay-apache-httpclient 
+[![Build Status](https://travis-ci.com/EliasZzz/wechatpay-apache-httpclient.svg?branch=master)](https://travis-ci.com/EliasZzz/wechatpay-apache-httpclient)
 
 ## 概览
 
