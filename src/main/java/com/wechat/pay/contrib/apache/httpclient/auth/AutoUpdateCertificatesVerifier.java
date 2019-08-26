@@ -42,30 +42,39 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
   private CertificatesVerifier verifier;
 
-  private List<X509Certificate> certList;
-
   private Credentials credentials;
 
   private byte[] apiV3Key;
 
   private ReentrantLock lock = new ReentrantLock();
 
-  public AutoUpdateCertificatesVerifier(List<X509Certificate> certList, Credentials credentials,
-      byte[] apiV3Key) {
-    //默认证书更新时间为1小时
-    this(certList, credentials, apiV3Key, 60);
+  //时间间隔枚举，支持一小时、六小时以及十二小时
+  public enum TimeInterval {
+    OneHour(60), SixHours(60 * 6), TwelveHours(60 * 12);
+
+    private int minutes;
+
+    TimeInterval(int minutes) {
+      this.minutes = minutes;
+    }
+
+    public int getMinutes() {
+      return minutes;
+    }
   }
 
-  public AutoUpdateCertificatesVerifier(List<X509Certificate> certList, Credentials credentials,
-      byte[] apiV3Key, int minutesInterval) {
-    this.certList = certList;
-    this.verifier = new CertificatesVerifier(certList);
+  public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key) {
+    this(credentials, apiV3Key, TimeInterval.OneHour.getMinutes());
+  }
+
+  public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, int minutesInterval) {
     this.credentials = credentials;
     this.apiV3Key = apiV3Key;
     this.minutesInterval = minutesInterval;
     //构造时更新证书
     try {
       autoUpdateCert();
+      instant = Instant.now();
     } catch (IOException | GeneralSecurityException e) {
       throw new RuntimeException(e);
     }
@@ -92,7 +101,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
   private void autoUpdateCert() throws IOException, GeneralSecurityException {
     CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
         .withCredentials(credentials)
-        .withValidator(new WechatPay2Validator(new CertificatesVerifier(this.certList)))
+        .withValidator(verifier == null ? (response) -> true : new WechatPay2Validator(verifier))
         .build();
 
     HttpGet httpGet = new HttpGet(CertDownloadPath);
@@ -107,8 +116,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         log.warn("Cert list is empty");
         return;
       }
-      this.certList = newCertList;
-      this.verifier = new CertificatesVerifier(certList);
+      this.verifier = new CertificatesVerifier(newCertList);
     } else {
       log.warn("Auto update cert failed, statusCode = " + statusCode + ",body = " + body);
     }

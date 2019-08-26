@@ -11,8 +11,6 @@ import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -36,10 +34,6 @@ public class AutoUpdateVerifierTest {
   private static String privateKey = "-----BEGIN PRIVATE KEY-----\n"
       + "-----END PRIVATE KEY-----\n";
 
-  // 你的微信支付平台证书
-  private static String certificate = "-----BEGIN CERTIFICATE-----\n"
-      + "-----END CERTIFICATE-----";
-
   //测试AutoUpdateCertificatesVerifier的verify方法参数
   private static String serialNumber = "";
   private static String message = "";
@@ -49,17 +43,11 @@ public class AutoUpdateVerifierTest {
   public void setup() throws IOException {
     PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
         new ByteArrayInputStream(privateKey.getBytes("utf-8")));
-    X509Certificate wechatpayCertificate = PemUtil.loadCertificate(
-        new ByteArrayInputStream(certificate.getBytes("utf-8")));
 
-    ArrayList<X509Certificate> listCertificates = new ArrayList<>();
-    listCertificates.add(wechatpayCertificate);
-
-    //使用自动更新的签名验证器
+    //使用自动更新的签名验证器，不需要传入证书
     verifier = new AutoUpdateCertificatesVerifier(
-        listCertificates,
         new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
-        apiV3Key.getBytes("utf-8"), 0);
+        apiV3Key.getBytes("utf-8"));
 
     httpClient = WechatPayHttpClientBuilder.create()
         .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
