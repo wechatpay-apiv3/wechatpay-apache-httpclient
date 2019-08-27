@@ -1,4 +1,4 @@
-# wechatpay-apache-httpclient
+# wechatpay-apache-httpclient 
 
 ## 概览
 
@@ -94,6 +94,37 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withCredentials(credentials)
         .withWechatpay(wechatpayCertificates);
 ```
+
+### 自动更新证书功能（可选）
+
+可使用 AutoUpdateCertificatesVerifier 类，该类于原 CertificatesVerifier 上增加证书的**超时自动更新**（默认与上次更新时间超过一小时后自动更新），并会在首次创建时，进行证书更新。
+
+示例代码：
+
+```java
+//不需要传入微信支付证书，将会自动更新
+AutoUpdateCertificatesVerifier verifier = new AutoUpdateCertificatesVerifier(
+        new WechatPay2Credentials(merchantId, new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
+        apiV3Key.getBytes("utf-8"));
+
+
+WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
+        .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
+        .withValidator(new WechatPay2Validator(verifier))
+// ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
+
+// 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签，并进行证书自动更新
+HttpClient httpClient = builder.build();
+
+// 后面跟使用Apache HttpClient一样
+HttpResponse response = httpClient.execute(...);
+```
+
+#### 风险
+
+因为不需要传入微信支付平台证书，AutoUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
+
+但下载时会通过 **HTTPS**、**AES 对称加密**来保证证书安全，所以可以认为，在使用官方 JDK、且 APIv3 密钥不泄露的情况下，AutoUpdateCertificatesVerifier 是**安全**的。
 
 ## 常见问题
 

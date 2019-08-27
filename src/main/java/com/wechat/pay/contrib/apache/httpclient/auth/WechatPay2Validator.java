@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class WechatPay2Validator implements Validator {
 
-  private static final Logger log = LoggerFactory.getLogger(WechatPay2Credentials.class);
+  private static final Logger log = LoggerFactory.getLogger(WechatPay2Validator.class);
 
   private Verifier verifier;
 
