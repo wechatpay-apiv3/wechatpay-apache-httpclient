@@ -8,7 +8,7 @@
 
 ## 项目状态
 
-当前版本`0.1.4-SNAPSHOT`为预览版，尚没经过严格的功能和兼容性测试。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性。由此带来的风险，由商户自行承担。
+当前版本`0.1.5`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
 
 ## 环境要求
 
@@ -27,7 +27,7 @@ repositories {
 }
 ...
 dependencies {
-    implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.1.4-SNAPSHOT'
+    implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.1.5'
     ...
 }
 ```
@@ -51,7 +51,7 @@ dependencies {
 	<dependency>
 	    <groupId>com.github.wechatpay-apiv3</groupId>
 	    <artifactId>wechatpay-apache-httpclient</artifactId>
-	    <version>0.1.4-SNAPSHOT</version>
+	    <version>0.1.5</version>
 	</dependency>
 ```
 
@@ -95,9 +95,9 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withWechatpay(wechatpayCertificates);
 ```
 
-### 自动更新证书功能（可选）
+## 自动更新证书功能（可选）
 
-可使用 AutoUpdateCertificatesVerifier 类，该类于原 CertificatesVerifier 上增加证书的**超时自动更新**（默认与上次更新时间超过一小时后自动更新），并会在首次创建时，进行证书更新。
+新版本`>=0.1.5`可使用 AutoUpdateCertificatesVerifier 类，该类于原 CertificatesVerifier 上增加证书的**超时自动更新**（默认与上次更新时间超过一小时后自动更新），并会在首次创建时，进行证书更新。
 
 示例代码：
 
@@ -120,7 +120,7 @@ HttpClient httpClient = builder.build();
 HttpResponse response = httpClient.execute(...);
 ```
 
-#### 风险
+### 风险
 
 因为不需要传入微信支付平台证书，AutoUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
 
@@ -147,7 +147,7 @@ CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
 
 ## 联系我们
 
-如果你发现了**BUG**或者有任何疑问，请通过issue进行反馈。
+如果你发现了**BUG**或者有任何疑问、建议，请通过issue进行反馈。
 
 也欢迎访问我们的[开发者社区](https://developers.weixin.qq.com/community/pay)。
 
