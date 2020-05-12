@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -143,8 +144,10 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
                 .getBytes("utf-8"),
             encryptCertificateNode.get("ciphertext").toString().replaceAll("\"", ""));
 
-        X509Certificate x509Cert = PemUtil
-            .loadCertificate(new ByteArrayInputStream(cert.getBytes("utf-8")));
+        CertificateFactory cf = CertificateFactory.getInstance("X509");
+        X509Certificate x509Cert = (X509Certificate) cf.generateCertificate(
+            new ByteArrayInputStream(cert.getBytes("utf-8"))
+        );
         try {
           x509Cert.checkValidity();
         } catch (CertificateExpiredException | CertificateNotYetValidException e) {
