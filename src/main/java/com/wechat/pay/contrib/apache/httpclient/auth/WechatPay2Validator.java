@@ -36,7 +36,7 @@ public class WechatPay2Validator implements Validator {
   }
 
   protected final String buildMessage(CloseableHttpResponse response) throws IOException {
-    String timestamp = response.getFirstHeader("Wechatpay-TimeStamp").getValue();
+    String timestamp = response.getFirstHeader("Wechatpay-Timestamp").getValue();
     String nonce = response.getFirstHeader("Wechatpay-Nonce").getValue();
 
     String body = getResponseBody(response);
