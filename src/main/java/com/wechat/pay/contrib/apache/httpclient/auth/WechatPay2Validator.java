@@ -73,9 +73,9 @@ public class WechatPay2Validator implements Validator {
     } else {
       Header timestamp = response.getFirstHeader("Wechatpay-Timestamp");
       try {
-        Instant instant = Instant.ofEpochSecond(Integer.parseInt(timestamp.getValue()));
-        // 拒绝5分钟之前的应答
-        if (Duration.between(instant, Instant.now()).toMinutes() >= 5) {
+        Instant instant = Instant.ofEpochSecond(Long.parseLong(timestamp.getValue()));
+        // 拒绝5分钟之外的应答
+        if (Duration.between(instant, Instant.now()).abs().toMinutes() >= 5) {
           throw parameterError("timestamp=[%s] expires, request-id=[%s]",
               timestamp.getValue(), requestId);
         }
