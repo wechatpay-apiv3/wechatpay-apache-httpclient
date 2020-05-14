@@ -8,7 +8,7 @@
 
 ## 项目状态
 
-当前版本`0.1.5`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.1.6`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
 
 ## 环境要求
 
@@ -27,7 +27,7 @@ repositories {
 }
 ...
 dependencies {
-    implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.1.5'
+    implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.1.6'
     ...
 }
 ```
@@ -51,7 +51,7 @@ dependencies {
 	<dependency>
 	    <groupId>com.github.wechatpay-apiv3</groupId>
 	    <artifactId>wechatpay-apache-httpclient</artifactId>
-	    <version>0.1.5</version>
+	    <version>0.1.6</version>
 	</dependency>
 ```
 
