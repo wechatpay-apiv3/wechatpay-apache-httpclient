@@ -66,10 +66,12 @@ public class SignatureExec implements ClientExecChain {
       HttpClientContext context, HttpExecutionAware execAware) throws IOException, HttpException {
     HttpUriRequest newRequest = RequestBuilder.copy(request.getOriginal()).build();
     convertToRepeatableRequestEntity(newRequest);
-    // 添加认证信息
-    newRequest.addHeader("Authorization",
-        credentials.getSchema() + " " + credentials.getToken(newRequest));
-
+    //上传图片时，签名特殊处理
+    if(!newRequest.containsHeader("Authorization")) {
+      // 添加认证信息
+      newRequest.addHeader("Authorization",
+              credentials.getSchema() + " " + credentials.getToken(newRequest));
+    }
     // 执行
     CloseableHttpResponse response = mainExec.execute(
         route, HttpRequestWrapper.wrap(newRequest), context, execAware);
