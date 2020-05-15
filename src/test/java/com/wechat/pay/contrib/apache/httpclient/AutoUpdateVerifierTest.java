@@ -3,19 +3,26 @@ package com.wechat.pay.contrib.apache.httpclient;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.wechat.pay.contrib.apache.httpclient.auth.AutoUpdateCertificatesVerifier;
-import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
-import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
-import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
+import com.wechat.pay.contrib.apache.httpclient.auth.*;
 import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+
+import java.io.*;
 import java.security.PrivateKey;
+import java.security.SecureRandom;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -80,5 +87,68 @@ public class AutoUpdateVerifierTest {
     } finally {
       response1.close();
     }
+  }
+
+  /**
+   * 上传图片 sign不能对HttpRequest加签
+   * 加签内容 buildMessage
+   * POST
+   * /v3/merchant/media/upload
+   * 1566987169           //时间戳
+   * 12ced2db6f0193dda91ba86224ea1cd8   //随机数
+   * {"filename":" filea.jpg ","sha256":" hjkahkjsjkfsjk78687dhjahdajhk "}
+   * @throws UnsupportedEncodingException
+   */
+  @Test
+  public void uploadImageTest() throws IOException {
+    String filePath="";
+    String url="https://api.mch.weixin.qq.com/v3/merchant/media/upload";
+    File file=new File(filePath);
+    String fileName=file.getName();
+    FileInputStream fileInputStream = new FileInputStream(file);
+    String sha256Content = DigestUtils.sha256Hex(fileInputStream);
+
+    HttpPost httpPost=new HttpPost(url);
+    String json=String.format("{\"filename\":\"%s\",\"sha256\":\"%s\"}",fileName,sha256Content);
+    httpPost.addHeader("Authorization",getToken(json));
+    httpPost.addHeader("Content-Type", ContentType.MULTIPART_FORM_DATA.toString());
+    httpPost.addHeader("Accept",ContentType.APPLICATION_JSON.toString());
+
+    MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create().setMode(HttpMultipartMode.RFC6532);
+    entityBuilder.setBoundary("boundary");
+    entityBuilder.addTextBody("meta",json, ContentType.APPLICATION_JSON);
+    entityBuilder.addBinaryBody("file",file,ContentType.IMAGE_JPEG,fileName);
+    httpPost.setEntity(entityBuilder.build());
+
+    HttpResponse httpResponse=httpClient.execute(httpPost);
+
+    String resp= EntityUtils.toString(httpResponse.getEntity());
+  }
+  private String getToken(String jsonStr) throws UnsupportedEncodingException {
+    String nonce = generateNonceStr();
+    long timestamp = System.currentTimeMillis() / 1000;
+    PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
+            new ByteArrayInputStream(privateKey.getBytes("utf-8")));
+    String message = String.format("POST\n/v3/merchant/media/upload\n%s\n%s\n%s\n",timestamp,nonce,jsonStr
+    );
+    PrivateKeySigner privateKeySigner=new PrivateKeySigner(mchSerialNo,merchantPrivateKey);
+    Signer.SignatureResult signResult=privateKeySigner.sign(message.getBytes("utf-8"));
+
+    String token = "WECHATPAY2-SHA256-RSA2048 mchid=\"" + mchId + "\","
+            + "nonce_str=\"" + nonce + "\","
+            + "timestamp=\"" + timestamp + "\","
+            + "serial_no=\"" + signResult.getCertificateSerialNumber() + "\","
+            + "signature=\"" + signResult.getSign() + "\"";
+    return token;
+  }
+  private static final String SYMBOLS =
+          "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static final SecureRandom RANDOM = new SecureRandom();
+  protected String generateNonceStr() {
+    char[] nonceChars = new char[32];
+    for (int index = 0; index < nonceChars.length; ++index) {
+      nonceChars[index] = SYMBOLS.charAt(RANDOM.nextInt(SYMBOLS.length()));
+    }
+    return new String(nonceChars);
   }
 }

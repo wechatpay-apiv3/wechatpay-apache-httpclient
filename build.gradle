@@ -22,6 +22,7 @@ ext {
 
 dependencies {
     api "org.apache.httpcomponents:httpclient:$httpclient_version"
+    api "org.apache.httpcomponents:httpmime:$httpclient_version"
     implementation "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
     implementation "org.slf4j:slf4j-api:$slf4j_version"
     testImplementation "org.slf4j:slf4j-simple:$slf4j_version"
