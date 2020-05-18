@@ -158,4 +158,9 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     }
     return newCertList;
   }
+
+  @Override
+  public X509Certificate getLatestCert() {
+    return this.verifier.getLatestCert();
+  }
 }

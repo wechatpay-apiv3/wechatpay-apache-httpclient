@@ -40,4 +40,13 @@ public class CertificatesVerifier implements Verifier {
     BigInteger val = new BigInteger(serialNumber, 16);
     return certificates.containsKey(val) && verify(certificates.get(val), message, signature);
   }
+
+  @Override
+  public X509Certificate getLatestCert() {
+    X509Certificate latestCert=null;
+    for(X509Certificate cert:certificates.values()) {
+      latestCert = cert;
+    }
+    return latestCert;
+  }
 }
