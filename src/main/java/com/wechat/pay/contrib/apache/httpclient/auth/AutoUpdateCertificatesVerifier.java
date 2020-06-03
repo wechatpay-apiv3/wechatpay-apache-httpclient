@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wechat.pay.contrib.apache.httpclient.Credentials;
 import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 import com.wechat.pay.contrib.apache.httpclient.util.AesUtil;
-import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -22,6 +21,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,26 +49,12 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
   private ReentrantLock lock = new ReentrantLock();
 
-  //时间间隔枚举，支持一小时、六小时以及十二小时
-  public enum TimeInterval {
-    OneHour(60), SixHours(60 * 6), TwelveHours(60 * 12);
-
-    private int minutes;
-
-    TimeInterval(int minutes) {
-      this.minutes = minutes;
-    }
-
-    public int getMinutes() {
-      return minutes;
-    }
-  }
-
   public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key) {
     this(credentials, apiV3Key, TimeInterval.OneHour.getMinutes());
   }
 
-  public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, int minutesInterval) {
+  public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key,
+      int minutesInterval) {
     this.credentials = credentials;
     this.apiV3Key = apiV3Key;
     this.minutesInterval = minutesInterval;
@@ -82,8 +68,15 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
   }
 
   @Override
+  @Nullable
+  public X509Certificate getValidCertificate() {
+    return verifier.getValidCertificate();
+  }
+
+  @Override
   public boolean verify(String serialNumber, byte[] message, String signature) {
-    if (instant == null || Duration.between(instant, Instant.now()).toMinutes() >= minutesInterval) {
+    if (instant == null
+        || Duration.between(instant, Instant.now()).toMinutes() >= minutesInterval) {
       if (lock.tryLock()) {
         try {
           autoUpdateCert();
@@ -123,7 +116,6 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     }
   }
 
-
   /**
    * 反序列化证书并解密
    */
@@ -157,5 +149,21 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
       }
     }
     return newCertList;
+  }
+
+
+  //时间间隔枚举，支持一小时、六小时以及十二小时
+  public enum TimeInterval {
+    OneHour(60), SixHours(60 * 6), TwelveHours(60 * 12);
+
+    private int minutes;
+
+    TimeInterval(int minutes) {
+      this.minutes = minutes;
+    }
+
+    public int getMinutes() {
+      return minutes;
+    }
   }
 }
