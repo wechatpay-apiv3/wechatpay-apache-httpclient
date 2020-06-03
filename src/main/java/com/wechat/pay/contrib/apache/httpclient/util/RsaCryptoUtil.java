@@ -13,7 +13,7 @@ import javax.crypto.NoSuchPaddingException;
 
 public class RsaCryptoUtil {
 
-  public static String rsaEncryptOAEP(String message, X509Certificate certificate)
+  public static String encryptOAEP(String message, X509Certificate certificate)
       throws IllegalBlockSizeException, IOException {
     try {
       Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
@@ -31,7 +31,7 @@ public class RsaCryptoUtil {
     }
   }
 
-  public static String rsaDecryptOAEP(String ciphertext, PrivateKey privateKey)
+  public static String decryptOAEP(String ciphertext, PrivateKey privateKey)
       throws BadPaddingException, IOException {
     try {
       Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
