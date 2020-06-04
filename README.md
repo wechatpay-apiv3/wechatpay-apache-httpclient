@@ -120,7 +120,20 @@ HttpClient httpClient = builder.build();
 HttpResponse response = httpClient.execute(...);
 ```
 
-### 风险
+## 敏感信息加解密
+
+### 加密
+
+使用` RsaCryptoUtil.encryptOAEP(String, X509Certificate)`进行公钥加密。示例代码如下。
+
+```java
+// 从Verifier中获得证书，也可从本地的证书文件中加载
+X509Certificate wechatpayCertificate = verifier.getValidCertificate();
+// 加密，最好先检查证书是否不为null
+String ciphertext = RsaCryptoUtil.encryptOAEP(text, wechatpayCertificate);
+```
+
+## 风险
 
 因为不需要传入微信支付平台证书，AutoUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
 
