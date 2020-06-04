@@ -98,21 +98,29 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         .withValidator(verifier == null ? (response) -> true : new WechatPay2Validator(verifier))
         .build();
 
-    HttpGet httpGet = new HttpGet(CertDownloadPath);
-    httpGet.addHeader("Accept", "application/json");
+    try {
+      HttpGet httpGet = new HttpGet(CertDownloadPath);
+      httpGet.addHeader("Accept", "application/json");
 
-    CloseableHttpResponse response = httpClient.execute(httpGet);
-    int statusCode = response.getStatusLine().getStatusCode();
-    String body = EntityUtils.toString(response.getEntity());
-    if (statusCode == 200) {
-      List<X509Certificate> newCertList = deserializeToCerts(apiV3Key, body);
-      if (newCertList.isEmpty()) {
-        log.warn("Cert list is empty");
-        return;
+      CloseableHttpResponse response = httpClient.execute(httpGet);
+      try {
+        int statusCode = response.getStatusLine().getStatusCode();
+        String body = EntityUtils.toString(response.getEntity());
+        if (statusCode == 200) {
+          List<X509Certificate> newCertList = deserializeToCerts(apiV3Key, body);
+          if (newCertList.isEmpty()) {
+            log.warn("Cert list is empty");
+            return;
+          }
+          this.verifier = new CertificatesVerifier(newCertList);
+        } else {
+          log.warn("Auto update cert failed, statusCode = " + statusCode + ",body = " + body);
+        }
+      } finally {
+        response.close();
       }
-      this.verifier = new CertificatesVerifier(newCertList);
-    } else {
-      log.warn("Auto update cert failed, statusCode = " + statusCode + ",body = " + body);
+    } finally {
+      httpClient.close();
     }
   }
 
