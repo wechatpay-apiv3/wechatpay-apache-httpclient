@@ -11,7 +11,7 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
+import java.util.NoSuchElementException;
 
 public class CertificatesVerifier implements Verifier {
 
@@ -46,7 +46,6 @@ public class CertificatesVerifier implements Verifier {
   }
 
   @Override
-  @Nullable
   public X509Certificate getValidCertificate() {
     for (X509Certificate x509Cert : certificates.values()) {
       try {
@@ -58,6 +57,6 @@ public class CertificatesVerifier implements Verifier {
       }
     }
 
-    return null;
+    throw new NoSuchElementException("没有有效的微信支付平台证书");
   }
 }

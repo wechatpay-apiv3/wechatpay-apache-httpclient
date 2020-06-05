@@ -77,7 +77,7 @@ public class RsaCryptoTest {
         + "  \"mobile\" : \"" + ciphertext + "\",\n"
         + "  \"qr_code\" : \"https://open.work.weixin.qq.com/wwopen/userQRCode?vcode=xxx\",\n"
         + "  \"sub_mchid\" : \"1234567890\",\n"
-        + "  \"avatar\" : \"\",\n"
+        + "  \"avatar\" : \"logo\",\n"
         + "  \"userid\" : \"robert\"\n"
         + "}";
     StringEntity reqEntity = new StringEntity(

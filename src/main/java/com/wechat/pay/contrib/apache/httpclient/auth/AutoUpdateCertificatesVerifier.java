@@ -21,7 +21,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +67,6 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
   }
 
   @Override
-  @Nullable
   public X509Certificate getValidCertificate() {
     return verifier.getValidCertificate();
   }

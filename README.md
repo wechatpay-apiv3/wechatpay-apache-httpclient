@@ -127,10 +127,26 @@ HttpResponse response = httpClient.execute(...);
 使用` RsaCryptoUtil.encryptOAEP(String, X509Certificate)`进行公钥加密。示例代码如下。
 
 ```java
-// 从Verifier中获得证书，也可从本地的证书文件中加载
+// 建议从Verifier中获得微信支付平台证书，或使用预先下载到本地的平台证书文件中
 X509Certificate wechatpayCertificate = verifier.getValidCertificate();
-// 加密，最好先检查证书是否不为null
-String ciphertext = RsaCryptoUtil.encryptOAEP(text, wechatpayCertificate);
+try {
+  String ciphertext = RsaCryptoUtil.encryptOAEP(text, wechatpayCertificate);
+} catch (IllegalBlockSizeException e) {
+  e.printStackTrace();
+}
+```
+
+### 解密
+
+使用`RsaCryptoUtil.decryptOAEP(String ciphertext, PrivateKey privateKey)`进行私钥解密。示例代码如下。
+
+```java
+// 使用商户私钥解密
+try {
+  String ciphertext = RsaCryptoUtil.decryptOAEP(text, merchantPrivateKey);
+} catch (BadPaddingException e) {
+  e.printStackTrace();
+}
 ```
 
 ## 风险
