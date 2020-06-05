@@ -119,6 +119,11 @@ HttpClient httpClient = builder.build();
 // 后面跟使用Apache HttpClient一样
 HttpResponse response = httpClient.execute(...);
 ```
+### 风险
+
+因为不需要传入微信支付平台证书，AutoUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
+
+但下载时会通过 **HTTPS**、**AES 对称加密**来保证证书安全，所以可以认为，在使用官方 JDK、且 APIv3 密钥不泄露的情况下，AutoUpdateCertificatesVerifier 是**安全**的。
 
 ## 敏感信息加解密
 
@@ -148,12 +153,6 @@ try {
   e.printStackTrace();
 }
 ```
-
-## 风险
-
-因为不需要传入微信支付平台证书，AutoUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
-
-但下载时会通过 **HTTPS**、**AES 对称加密**来保证证书安全，所以可以认为，在使用官方 JDK、且 APIv3 密钥不泄露的情况下，AutoUpdateCertificatesVerifier 是**安全**的。
 
 ## 常见问题
 
