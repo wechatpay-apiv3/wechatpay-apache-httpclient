@@ -49,6 +49,8 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
   private ReentrantLock lock = new ReentrantLock();
 
+  private List<X509Certificate> x509CertificateList;
+
   //时间间隔枚举，支持一小时、六小时以及十二小时
   public enum TimeInterval {
     OneHour(60), SixHours(60 * 6), TwelveHours(60 * 12);
@@ -99,6 +101,32 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     return verifier.verify(serialNumber, message, signature);
   }
 
+  /**
+   * 获取证书用于敏感信息加密 
+   * @return
+   */
+  public X509Certificate getWxPlatformX509() {
+    if (instant == null || Duration.between(instant, Instant.now()).toMinutes() >= minutesInterval) {
+      if (lock.tryLock()) {
+        try {
+          autoUpdateCert();
+          //更新时间
+          instant = Instant.now();
+        } catch (GeneralSecurityException | IOException e) {
+          log.warn("Auto update cert failed, exception = " + e);
+        } finally {
+          lock.unlock();
+        }
+      }
+    }
+    if(x509CertificateList==null || x509CertificateList.size()==0){
+      log.warn("WxPlatformX509 list is empty");
+      return null;
+    }else {
+      return x509CertificateList.get(0);
+    }
+  }
+
   private void autoUpdateCert() throws IOException, GeneralSecurityException {
     CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
         .withCredentials(credentials)
@@ -117,6 +145,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         log.warn("Cert list is empty");
         return;
       }
+      this.x509CertificateList = newCertList;
       this.verifier = new CertificatesVerifier(newCertList);
     } else {
       log.warn("Auto update cert failed, statusCode = " + statusCode + ",body = " + body);
