@@ -119,12 +119,40 @@ HttpClient httpClient = builder.build();
 // 后面跟使用Apache HttpClient一样
 HttpResponse response = httpClient.execute(...);
 ```
-
 ### 风险
 
 因为不需要传入微信支付平台证书，AutoUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
 
 但下载时会通过 **HTTPS**、**AES 对称加密**来保证证书安全，所以可以认为，在使用官方 JDK、且 APIv3 密钥不泄露的情况下，AutoUpdateCertificatesVerifier 是**安全**的。
+
+## 敏感信息加解密
+
+### 加密
+
+使用` RsaCryptoUtil.encryptOAEP(String, X509Certificate)`进行公钥加密。示例代码如下。
+
+```java
+// 建议从Verifier中获得微信支付平台证书，或使用预先下载到本地的平台证书文件中
+X509Certificate wechatpayCertificate = verifier.getValidCertificate();
+try {
+  String ciphertext = RsaCryptoUtil.encryptOAEP(text, wechatpayCertificate);
+} catch (IllegalBlockSizeException e) {
+  e.printStackTrace();
+}
+```
+
+### 解密
+
+使用`RsaCryptoUtil.decryptOAEP(String ciphertext, PrivateKey privateKey)`进行私钥解密。示例代码如下。
+
+```java
+// 使用商户私钥解密
+try {
+  String ciphertext = RsaCryptoUtil.decryptOAEP(text, merchantPrivateKey);
+} catch (BadPaddingException e) {
+  e.printStackTrace();
+}
+```
 
 ## 常见问题
 
