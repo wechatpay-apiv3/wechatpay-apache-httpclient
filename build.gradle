@@ -1,6 +1,5 @@
 plugins {
     id 'java-library'
-    id 'maven'
 }
 
 group 'com.github.wechatpay-apiv3'
@@ -22,6 +21,7 @@ ext {
 
 dependencies {
     api "org.apache.httpcomponents:httpclient:$httpclient_version"
+    implementation "org.apache.httpcomponents:httpmime:$httpclient_version"
     implementation "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
     implementation "org.slf4j:slf4j-api:$slf4j_version"
     testImplementation "org.slf4j:slf4j-simple:$slf4j_version"
@@ -39,25 +39,11 @@ jar {
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
-    archiveClassifier = 'sources'
+    archiveClassifier.set("sources")
 }
 
 artifacts {
     archives sourcesJar
-}
-
-install {
-    repositories.mavenInstaller {
-        pom.project {
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
-                }
-            }
-        }
-    }
 }
 
 wrapper {

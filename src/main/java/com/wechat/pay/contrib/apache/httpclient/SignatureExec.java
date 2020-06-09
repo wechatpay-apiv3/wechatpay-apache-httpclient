@@ -1,20 +1,18 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
-import java.io.IOException;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.execchain.ClientExecChain;
-import org.apache.http.util.EntityUtils;
+
+import java.io.IOException;
 
 public class SignatureExec implements ClientExecChain {
   final ClientExecChain mainExec;
@@ -27,27 +25,19 @@ public class SignatureExec implements ClientExecChain {
     this.mainExec = mainExec;
   }
 
-  protected HttpEntity newRepeatableEntity(HttpEntity entity) throws IOException {
-    byte[] content = EntityUtils.toByteArray(entity);
-    ByteArrayEntity newEntity = new ByteArrayEntity(content);
-    newEntity.setContentEncoding(entity.getContentEncoding());
-    newEntity.setContentType(entity.getContentType());
-
-    return newEntity;
-  }
-
-  protected void convertToRepeatableResponseEntity(CloseableHttpResponse response) throws IOException {
+  protected void convertToRepeatableResponseEntity(CloseableHttpResponse response)
+      throws IOException {
     HttpEntity entity = response.getEntity();
-    if (entity != null && !entity.isRepeatable()) {
-      response.setEntity(newRepeatableEntity(entity));
+    if (entity != null) {
+      response.setEntity(new BufferedHttpEntity(entity));
     }
   }
 
-  protected void convertToRepeatableRequestEntity(HttpUriRequest request) throws IOException {
-    if (request instanceof HttpEntityEnclosingRequestBase) {
-      HttpEntity entity = ((HttpEntityEnclosingRequestBase) request).getEntity();
-      if (entity != null && !entity.isRepeatable()) {
-        ((HttpEntityEnclosingRequestBase) request).setEntity(newRepeatableEntity(entity));
+  protected void convertToRepeatableRequestEntity(HttpRequestWrapper request) throws IOException {
+    if (request instanceof HttpEntityEnclosingRequest) {
+      HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+      if (entity != null) {
+        ((HttpEntityEnclosingRequest) request).setEntity(new BufferedHttpEntity(entity));
       }
     }
   }
@@ -64,15 +54,16 @@ public class SignatureExec implements ClientExecChain {
 
   private CloseableHttpResponse executeWithSignature(HttpRoute route, HttpRequestWrapper request,
       HttpClientContext context, HttpExecutionAware execAware) throws IOException, HttpException {
-    HttpUriRequest newRequest = RequestBuilder.copy(request.getOriginal()).build();
-    convertToRepeatableRequestEntity(newRequest);
+    // 上传类不需要消耗两次故不做转换
+    if (!(request.getOriginal() instanceof WechatPayUploadHttpPost)) {
+      convertToRepeatableRequestEntity(request);
+    }
     // 添加认证信息
-    newRequest.addHeader("Authorization",
-        credentials.getSchema() + " " + credentials.getToken(newRequest));
+    request.addHeader("Authorization",
+        credentials.getSchema() + " " + credentials.getToken(request));
 
     // 执行
-    CloseableHttpResponse response = mainExec.execute(
-        route, HttpRequestWrapper.wrap(newRequest), context, execAware);
+    CloseableHttpResponse response = mainExec.execute(route, request, context, execAware);
 
     // 对成功应答验签
     StatusLine statusLine = response.getStatusLine();
@@ -84,5 +75,4 @@ public class SignatureExec implements ClientExecChain {
     }
     return response;
   }
-
 }
