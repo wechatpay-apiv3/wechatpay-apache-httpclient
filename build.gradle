@@ -1,9 +1,10 @@
 plugins {
     id 'java-library'
+    id 'maven'
 }
 
 group 'com.github.wechatpay-apiv3'
-version '0.1.6'
+version '0.2.0'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
