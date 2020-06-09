@@ -179,7 +179,7 @@ try (FileInputStream ins1 = new FileInputStream(file)) {
 }
 ```
 
-`AutoUpdateVerifierTest.uploadImageTest`是一个更完整的示例。
+[AutoUpdateVerifierTest.uploadImageTest](/src/test/java/com/wechat/pay/contrib/apache/httpclient/AutoUpdateVerifierTest.java#L86)是一个更完整的示例。
 
 ## 常见问题
 
