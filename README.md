@@ -8,11 +8,11 @@
 
 ## 项目状态
 
-当前版本`0.1.6`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.2.0`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
 
 ## 环境要求
 
-+ Java 1.8
++ Java 1.8+
 
 ## 安装
 
@@ -51,7 +51,7 @@ dependencies {
 	<dependency>
 	    <groupId>com.github.wechatpay-apiv3</groupId>
 	    <artifactId>wechatpay-apache-httpclient</artifactId>
-	    <version>0.1.6</version>
+	    <version>0.2.0</version>
 	</dependency>
 ```
 
@@ -154,6 +154,33 @@ try {
 }
 ```
 
+## 图片/视频上传
+
+我们对上传的参数组装和签名逻辑进行了一定的封装，只需要以下几步：
+
+1. 使用`WechatPayUploadHttpPost`构造一个上传的`HttpPost`，需设置待上传文件的文件名，SHA256摘要，文件的输入流。
+2. 通过`WechatPayHttpClientBuilder`得到的`HttpClient`发送请求。
+
+示例请参考下列代码。
+
+```java
+String filePath = "/your/home/hellokitty.png";
+URI uri = new URI("https://api.mch.weixin.qq.com/v3/merchant/media/upload");
+File file = new File(filePath);
+
+try (FileInputStream ins1 = new FileInputStream(file)) { 
+  String sha256 = DigestUtils.sha256Hex(ins1);
+  try (InputStream ins2 = new FileInputStream(file)) {
+    HttpPost request = new WechatPayUploadHttpPost.Builder(uri)
+        .withImage(file.getName(), sha256, ins2)
+        .build();
+    CloseableHttpResponse response1 = httpClient.execute(request);
+  }
+}
+```
+
+[AutoUpdateVerifierTest.uploadImageTest](/src/test/java/com/wechat/pay/contrib/apache/httpclient/AutoUpdateVerifierTest.java#L86)是一个更完整的示例。
+
 ## 常见问题
 
 ### 如何下载平台证书？
@@ -172,6 +199,18 @@ CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
 ### 证书和回调解密需要的AesGcm解密在哪里？
 
 请参考[AesUtil.Java](https://github.com/wechatpay-apiv3/wechatpay-apache-httpclient/blob/master/src/main/java/com/wechat/pay/contrib/apache/httpclient/util/AesUtil.java)。
+
+### 我想使用以前的版本，要怎么办
+
+可以在gradle中指定版本号。例如希望使用0.1.6版本，可以使用以下的方式。
+
+```xml
+	<dependency>
+	    <groupId>com.github.wechatpay-apiv3</groupId>
+	    <artifactId>wechatpay-apache-httpclient</artifactId>
+	    <version>0.1.6</version>
+	</dependency>
+```
 
 ## 联系我们
 

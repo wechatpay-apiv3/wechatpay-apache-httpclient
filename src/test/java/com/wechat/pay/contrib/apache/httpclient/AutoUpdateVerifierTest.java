@@ -1,16 +1,11 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import com.wechat.pay.contrib.apache.httpclient.auth.AutoUpdateCertificatesVerifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.security.PrivateKey;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -21,15 +16,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.*;
+import java.net.URI;
+import java.security.PrivateKey;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 public class AutoUpdateVerifierTest {
 
   private static String mchId = ""; // 商户号
   private static String mchSerialNo = ""; // 商户证书序列号
   private static String apiV3Key = ""; // api密钥
-
-  private CloseableHttpClient httpClient;
-  private AutoUpdateCertificatesVerifier verifier;
-
   // 你的商户私钥
   private static String privateKey = "-----BEGIN PRIVATE KEY-----\n"
       + "-----END PRIVATE KEY-----\n";
@@ -38,6 +36,8 @@ public class AutoUpdateVerifierTest {
   private static String serialNumber = "";
   private static String message = "";
   private static String signature = "";
+  private CloseableHttpClient httpClient;
+  private AutoUpdateCertificatesVerifier verifier;
 
   @Before
   public void setup() throws IOException {
@@ -79,6 +79,35 @@ public class AutoUpdateVerifierTest {
       EntityUtils.consume(entity1);
     } finally {
       response1.close();
+    }
+  }
+
+  @Test
+  public void uploadImageTest() throws Exception {
+    String filePath = "/your/home/hellokitty.png";
+
+    URI uri = new URI("https://api.mch.weixin.qq.com/v3/merchant/media/upload");
+
+    File file = new File(filePath);
+    try (FileInputStream s1 = new FileInputStream(file)) {
+      String sha256 = DigestUtils.sha256Hex(s1);
+      try (InputStream s2 = new FileInputStream(file)) {
+        WechatPayUploadHttpPost request = new WechatPayUploadHttpPost.Builder(uri)
+            .withImage(file.getName(), sha256, s2)
+            .build();
+
+        CloseableHttpResponse response1 = httpClient.execute(request);
+        assertEquals(200, response1.getStatusLine().getStatusCode());
+        try {
+          HttpEntity entity1 = response1.getEntity();
+          // do something useful with the response body
+          // and ensure it is fully consumed
+          String s = EntityUtils.toString(entity1);
+          System.out.println(s);
+        } finally {
+          response1.close();
+        }
+      }
     }
   }
 }
