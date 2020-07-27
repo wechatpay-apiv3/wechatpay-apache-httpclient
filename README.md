@@ -8,7 +8,7 @@
 
 ## 项目状态
 
-当前版本`0.2.0`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.2.1`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
 
 ## 环境要求
 
@@ -16,43 +16,25 @@
 
 ## 安装
 
+最新版本已经在 [Maven Central](https://search.maven.org/artifact/com.github.wechatpay-apiv3/wechatpay-apache-httpclient) 发布。
+
 ### Gradle
 
-在你的`build.gradle`文件中加入如下的信息
+在你的`build.gradle`文件中加入如下的依赖
 
 ```groovy
-repositories {
-    ...
-    maven { url 'https://jitpack.io' }
-}
-...
-dependencies {
-    implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.1.6'
-    ...
-}
+implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.1'
 ```
 
 ### Maven
-
-加入JitPack仓库
-
-```xml
-	<repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-	</repositories>
-```
-
 加入以下依赖
 
 ```xml
-	<dependency>
-	    <groupId>com.github.wechatpay-apiv3</groupId>
-	    <artifactId>wechatpay-apache-httpclient</artifactId>
-	    <version>0.2.0</version>
-	</dependency>
+<dependency>
+    <groupId>com.github.wechatpay-apiv3</groupId>
+    <artifactId>wechatpay-apache-httpclient</artifactId>
+    <version>0.2.1</version>
+</dependency>
 ```
 
 ## 开始
@@ -202,14 +184,18 @@ CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
 
 ### 我想使用以前的版本，要怎么办
 
-可以在gradle中指定版本号。例如希望使用0.1.6版本，可以使用以下的方式。
+之前的版本可以从 [jitpack](https://jitpack.io/#wechatpay-apiv3/wechatpay-apache-httpclient) 获取。例如希望使用0.1.6版本，gradle中可以使用以下的方式。
 
-```xml
-	<dependency>
-	    <groupId>com.github.wechatpay-apiv3</groupId>
-	    <artifactId>wechatpay-apache-httpclient</artifactId>
-	    <version>0.1.6</version>
-	</dependency>
+```groovy
+repositories {
+    ...
+    maven { url 'https://jitpack.io' }
+}
+...
+dependencies {
+    implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.1.6'
+    ...
+}
 ```
 
 ## 联系我们
