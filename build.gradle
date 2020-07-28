@@ -1,10 +1,11 @@
 plugins {
     id 'java-library'
-    id 'maven'
+    id 'maven-publish'
+    id 'signing'
 }
 
 group 'com.github.wechatpay-apiv3'
-version '0.2.0'
+version '0.2.1'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -14,10 +15,19 @@ repositories {
 }
 
 ext {
+    publishedArtifactId = project.name
+
     httpclient_version = "4.5.12"
     slf4j_version = "1.7.30"
     junit_version = "4.12"
     jackson_version = "2.9.10"
+}
+
+jar {
+    manifest {
+        attributes('Automatic-Module-Name': 'com.wechat.pay.contrib.apache.httpclient')
+        attributes('Implementation-Version': project.version)
+    }
 }
 
 dependencies {
@@ -29,25 +39,60 @@ dependencies {
     testImplementation "junit:junit:$junit_version"
 }
 
-jar {
-    manifest {
-        attributes('Implementation-Title': 'wechatpay-java',
-                'Implementation-Version': project.version,
-                'Export-Package': 'com.wechat.pay.*'
-        )
+publishing {
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    publications {
+        maven(MavenPublication) {
+            artifactId = project.ext.publishedArtifactId
+            from components.java
+
+            pom {
+                name = project.name
+                description = 'An Apache HttpClient decorator for WeChat Pay\'s API'
+                url = 'https://github.com/wechatpay-apiv3/wechatpay-apache-httpclient'
+                licenses {
+                    license {
+                        name = 'The Apache Software License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        name = 'WeChat Pay APIv3 Team'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/wechatpay-apiv3/wechatpay-apache-httpclient.git'
+                    developerConnection = 'scm:git:ssh://github.com/wechatpay-apiv3/wechatpay-apache-httpclient.git'
+                    url = 'https://github.com/wechatpay-apiv3/wechatpay-apache-httpclient'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "mavencentral"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username System.getenv('SONATYPE_NEXUS_USERNAME')
+                password System.getenv('SONATYPE_NEXUS_PASSWORD')
+            }
+        }
     }
 }
 
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allJava
-    archiveClassifier.set("sources")
+signing {
+    sign publishing.publications.maven
 }
 
-artifacts {
-    archives sourcesJar
-}
 
-wrapper {
-    gradleVersion = "5.4.1"
-    distributionType = Wrapper.DistributionType.ALL
-}
+
+
+
