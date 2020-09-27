@@ -8,19 +8,37 @@ import java.security.SignatureException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 public class CertificatesVerifier implements Verifier {
 
   private final HashMap<BigInteger, X509Certificate> certificates = new HashMap<>();
 
+  /**
+   * 平台证书对应的证书序列号
+   */
+  private final HashMap<BigInteger, String> CERTIFICATE_SERIAL_NOS = new HashMap<>();
+
+  /**
+   * 当前生效的证书序列号
+   */
+  private BigInteger effectiveCertSerialNumber;
+
   public CertificatesVerifier(List<X509Certificate> list) {
 
     for (X509Certificate item : list) {
       certificates.put(item.getSerialNumber(), item);
+    }
+  }
+
+    /**
+     * 新增够造用于启用自动更新证书方便获取平台证书 serial_no
+     * @param list 证书&证书序列号
+     */
+  public CertificatesVerifier(Map<String, X509Certificate> list) {
+    for (Map.Entry<String, X509Certificate> item : list.entrySet()) {
+      certificates.put(item.getValue().getSerialNumber(), item.getValue());
+      CERTIFICATE_SERIAL_NOS.put(item.getValue().getSerialNumber(), item.getKey());
     }
   }
 
@@ -47,16 +65,26 @@ public class CertificatesVerifier implements Verifier {
 
   @Override
   public X509Certificate getValidCertificate() {
-    for (X509Certificate x509Cert : certificates.values()) {
+    for (Map.Entry<BigInteger, X509Certificate> certs : certificates.entrySet()) {
       try {
-        x509Cert.checkValidity();
-
-        return x509Cert;
-      } catch (CertificateExpiredException | CertificateNotYetValidException e) {
-        continue;
+        certs.getValue().checkValidity();
+        effectiveCertSerialNumber = certs.getKey();
+        return certs.getValue();
+      } catch (CertificateExpiredException | CertificateNotYetValidException ignored) {
       }
     }
 
     throw new NoSuchElementException("没有有效的微信支付平台证书");
+  }
+
+  @Override
+  public String getValidCertificateSerialNo() {
+    if (effectiveCertSerialNumber == null) {
+      getValidCertificate();
+    }
+    if (effectiveCertSerialNumber == null) {
+      return null;
+    }
+    return CERTIFICATE_SERIAL_NOS.get(effectiveCertSerialNumber);
   }
 }

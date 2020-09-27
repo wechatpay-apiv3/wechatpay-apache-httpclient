@@ -15,7 +15,9 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -72,6 +74,11 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
   }
 
   @Override
+  public String getValidCertificateSerialNo() {
+    return verifier.getValidCertificateSerialNo();
+  }
+
+  @Override
   public boolean verify(String serialNumber, byte[] message, String signature) {
     if (instant == null
         || Duration.between(instant, Instant.now()).toMinutes() >= minutesInterval) {
@@ -105,7 +112,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         int statusCode = response.getStatusLine().getStatusCode();
         String body = EntityUtils.toString(response.getEntity());
         if (statusCode == 200) {
-          List<X509Certificate> newCertList = deserializeToCerts(apiV3Key, body);
+          Map<String, X509Certificate> newCertList = deserializeToCertsWithSerialNo(apiV3Key, body);
           if (newCertList.isEmpty()) {
             log.warn("Cert list is empty");
             return;
@@ -152,6 +159,42 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
           continue;
         }
         newCertList.add(x509Cert);
+      }
+    }
+    return newCertList;
+  }
+
+  /**
+   * 反序列化证书并解密 同时返回该证书对应的平台序列号
+   */
+  private Map<String, X509Certificate> deserializeToCertsWithSerialNo(byte[] apiV3Key, String body)
+          throws GeneralSecurityException, IOException {
+    AesUtil decryptor = new AesUtil(apiV3Key);
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode dataNode = mapper.readTree(body).get("data");
+    Map<String, X509Certificate> newCertList = new HashMap<>();
+    if (dataNode != null) {
+      for (int i = 0, count = dataNode.size(); i < count; i++) {
+        JsonNode encryptCertificateNode = dataNode.get(i).get("encrypt_certificate");
+        //解密
+        String cert = decryptor.decryptToString(
+                encryptCertificateNode.get("associated_data").toString().replaceAll("\"", "")
+                        .getBytes("utf-8"),
+                encryptCertificateNode.get("nonce").toString().replaceAll("\"", "")
+                        .getBytes("utf-8"),
+                encryptCertificateNode.get("ciphertext").toString().replaceAll("\"", ""));
+
+        CertificateFactory cf = CertificateFactory.getInstance("X509");
+        X509Certificate x509Cert = (X509Certificate) cf.generateCertificate(
+                new ByteArrayInputStream(cert.getBytes("utf-8"))
+        );
+        try {
+          x509Cert.checkValidity();
+        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+          continue;
+        }
+        JsonNode serialNoNode = dataNode.get(i).get("serial_no");
+        newCertList.put(serialNoNode.asText(), x509Cert);
       }
     }
     return newCertList;
