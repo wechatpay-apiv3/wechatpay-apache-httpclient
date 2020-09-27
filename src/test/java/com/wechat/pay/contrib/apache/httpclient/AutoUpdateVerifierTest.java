@@ -80,6 +80,7 @@ public class AutoUpdateVerifierTest {
     } finally {
       response1.close();
     }
+    System.out.println("获取自动管理的平台证书序列号: " + verifier.getValidCertificateSerialNo());
   }
 
   @Test
