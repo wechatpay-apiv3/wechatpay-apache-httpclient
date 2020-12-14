@@ -178,6 +178,17 @@ CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
 
 **注意**：业务请求请使用标准的初始化流程，务必验证应答签名。
 
+### 如何下载账单
+
+因为下载的账单文件可能会很大，为了平衡系统性能和签名验签的实现成本，[账单下载API](https://pay.weixin.qq.com/wiki/doc/apiv3/wxpay/pay/bill/chapter3_3.shtml)被分成了两个步骤：
+
+1. `/v3/bill/tradebill` 获取账单下载链接和账单摘要
+2. `/v3/billdownload/file` 账单文件下载，请求需签名但应答不签名
+
+因为第二步不包含应答签名，我们可以参考上一个问题下载平台证书的方法，使用`withValidator(response -> true)`“跳过”应答的签名校验。
+
+**注意**：开发者在下载文件之后，应使用第一步获取的账单摘要校验文件的完整性。
+
 ### 证书和回调解密需要的AesGcm解密在哪里？
 
 请参考[AesUtil.Java](https://github.com/wechatpay-apiv3/wechatpay-apache-httpclient/blob/master/src/main/java/com/wechat/pay/contrib/apache/httpclient/util/AesUtil.java)。
