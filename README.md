@@ -57,6 +57,44 @@ HttpClient httpClient = builder.build();
 HttpResponse response = httpClient.execute(...);
 ```
 
+参数说明：
+
++ `merchantId`商户号。
++ `merchantSerialNumber`商户证书的证书序列号，请参考[什么是证书序列号](https://wechatpay-api.gitbook.io/wechatpay-api-v3/chang-jian-wen-ti/zheng-shu-xiang-guan#shen-me-shi-zheng-shu-xu-lie-hao)和[如何查看证书序列号](https://wechatpay-api.gitbook.io/wechatpay-api-v3/chang-jian-wen-ti/zheng-shu-xiang-guan#ru-he-cha-kan-zheng-shu-xu-lie-hao)。
++ `merchantPrivateKey`字符串格式的商户私钥，也就是通过证书工具得到的`apiclient_key.pem`文件中的内容。
++ `wechatpayCertificates`微信支付平台证书的实例列表，用于应答签名的验证。你也可以使用后面章节提到的“自动更新证书功能”。
+
+### 示例：获取平台证书
+
+你可以使用`WechatPayHttpClientBuilder`构造的`HttpClient`发送请求和应答了。
+
+```java
+URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/certificates");
+HttpGet httpGet = new HttpGet(uriBuilder.build());
+httpGet.addHeader("Accept", "application/json");
+
+CloseableHttpResponse response = httpClient.execute(httpGet);
+
+String bodyAsString = EntityUtils.toString(response.getEntity());
+System.out.println(bodyAsString);
+```
+
+### 示例：JSAPI下单
+
+```java
+
+```
+
+### 示例：查单
+
+```java
+```
+
+### 示例：关单
+
+```java
+```
+
 ## 定制
 
 当默认的本地签名和验签方式不适合你的系统时，你可以通过实现`Signer`或者`Verifier`来定制签名和验签。比如，你的系统把商户私钥集中存储，业务系统需通过远程调用进行签名，你可以这样做。
