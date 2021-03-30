@@ -81,18 +81,80 @@ System.out.println(bodyAsString);
 
 ### 示例：JSAPI下单
 
-```java
+注：
 
++ 我们使用了 Jackson 演示拼装 Json，你也可以使用自己熟悉的 Json 库
++ 请使用你自己的测试商户号、appid 以及对应的 openid
+
+```java
+HttpPost httpPost = new HttpPost("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi");
+httpPost.addHeader("Accept", "application/json");
+httpPost.addHeader("Content-type","application/json; charset=utf-8");
+
+ByteArrayOutputStream bos = new ByteArrayOutputStream();
+ObjectMapper objectMapper = new ObjectMapper();
+JsonGenerator generator = objectMapper.getFactory().createGenerator(bos);
+
+generator.writeStartObject();
+generator.writeStringField("mchid", "1230000109");
+generator.writeStringField("appid", "wxd678efh567hg6787");
+generator.writeStringField("description", "Image形象店-深圳腾大-QQ公仔");
+generator.writeStringField("notify_url", "https://www.weixin.qq.com/wxpay/pay.php");
+generator.writeStringField("out_trade_no", "1217752501201407033233368018");
+generator.writeObjectFieldStart("amount");
+  generator.writeNumberField("total", 1);
+  generator.writeEndObject();
+generator.writeObjectFieldStart("payer");
+  generator.writeStringField("openid", "oUpF8uMuAJO_M2pxb1Q9zNjWeS6o");
+  generator.writeEndObject();
+generator.writeEndObject();
+
+generator.flush();
+generator.close();
+    
+httpPost.setEntity(new StringEntity(bos.toString("UTF-8")));
+CloseableHttpResponse response = httpClient.execute(httpPost);
+
+String bodyAsString = EntityUtils.toString(response.getEntity());
+System.out.println(bodyAsString);
 ```
 
 ### 示例：查单
 
 ```java
+URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/pay/transactions/id/4200000889202103303311396384?mchid=1230000109");
+HttpGet httpGet = new HttpGet(uriBuilder.build());
+httpGet.addHeader("Accept", "application/json");
+
+CloseableHttpResponse response = httpClient.execute(httpGet);
+
+String bodyAsString = EntityUtils.toString(response.getEntity());
+System.out.println(bodyAsString);
 ```
 
 ### 示例：关单
 
 ```java
+HttpPost httpPost = new HttpPost("https://api.mch.weixin.qq.com/v3/pay/transactions/out-trade-no/1217752501201407033233368018/close");
+httpPost.addHeader("Accept", "application/json");
+httpPost.addHeader("Content-type","application/json; charset=utf-8");
+
+ByteArrayOutputStream bos = new ByteArrayOutputStream();
+ObjectMapper objectMapper = new ObjectMapper();
+JsonGenerator generator = objectMapper.getFactory().createGenerator(bos);
+
+generator.writeStartObject();
+generator.writeStringField("mchid", "1230000109");
+generator.writeEndObject();
+
+generator.flush();
+generator.close();
+    
+httpPost.setEntity(new StringEntity(bos.toString("UTF-8")));
+CloseableHttpResponse response = httpClient.execute(httpPost);
+
+String bodyAsString = EntityUtils.toString(response.getEntity());
+System.out.println(bodyAsString);
 ```
 
 ## 定制
