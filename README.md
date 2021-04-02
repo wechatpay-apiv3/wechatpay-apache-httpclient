@@ -83,7 +83,7 @@ System.out.println(bodyAsString);
 
 注：
 
-+ 我们使用了 Jackson 演示拼装 Json，你也可以使用自己熟悉的 Json 库
++ 我们使用了 jackson-databind 演示拼装 Json，你也可以使用自己熟悉的 Json 库
 + 请使用你自己的测试商户号、appid 以及对应的 openid
 
 ```java
@@ -93,24 +93,19 @@ httpPost.addHeader("Content-type","application/json; charset=utf-8");
 
 ByteArrayOutputStream bos = new ByteArrayOutputStream();
 ObjectMapper objectMapper = new ObjectMapper();
-JsonGenerator generator = objectMapper.getFactory().createGenerator(bos);
 
-generator.writeStartObject();
-generator.writeStringField("mchid", "1230000109");
-generator.writeStringField("appid", "wxd678efh567hg6787");
-generator.writeStringField("description", "Image形象店-深圳腾大-QQ公仔");
-generator.writeStringField("notify_url", "https://www.weixin.qq.com/wxpay/pay.php");
-generator.writeStringField("out_trade_no", "1217752501201407033233368018");
-generator.writeObjectFieldStart("amount");
-  generator.writeNumberField("total", 1);
-  generator.writeEndObject();
-generator.writeObjectFieldStart("payer");
-  generator.writeStringField("openid", "oUpF8uMuAJO_M2pxb1Q9zNjWeS6o");
-  generator.writeEndObject();
-generator.writeEndObject();
+ObjectNode rootNode = mapper.createObjectNode();
+rootNode.put("mchid","1900009191")
+        .put("appid", "wxd678efh567hg6787")
+        .put("description", "Image形象店-深圳腾大-QQ公仔")
+        .put("notify_url", "https://www.weixin.qq.com/wxpay/pay.php")
+        .put("out_trade_no", "1217752501201407033233368018");
+rootNode.putObject("amount")
+        .put("total", 1);
+rootNode.putObject("payer")
+        .put("openid", "oUpF8uMuAJO_M2pxb1Q9zNjWeS6o");
 
-generator.flush();
-generator.close();
+mapper.writeValue(bos, rootNode);
     
 httpPost.setEntity(new StringEntity(bos.toString("UTF-8")));
 CloseableHttpResponse response = httpClient.execute(httpPost);
@@ -141,14 +136,11 @@ httpPost.addHeader("Content-type","application/json; charset=utf-8");
 
 ByteArrayOutputStream bos = new ByteArrayOutputStream();
 ObjectMapper objectMapper = new ObjectMapper();
-JsonGenerator generator = objectMapper.getFactory().createGenerator(bos);
 
-generator.writeStartObject();
-generator.writeStringField("mchid", "1230000109");
-generator.writeEndObject();
+ObjectNode rootNode = mapper.createObjectNode();
+rootNode.put("mchid","1900009191");
 
-generator.flush();
-generator.close();
+mapper.writeValue(bos, rootNode);
     
 httpPost.setEntity(new StringEntity(bos.toString("UTF-8")));
 CloseableHttpResponse response = httpClient.execute(httpPost);
