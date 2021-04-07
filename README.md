@@ -8,7 +8,7 @@
 
 ## 项目状态
 
-当前版本`0.2.1`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.2.2`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
 
 ## 环境要求
 
@@ -23,7 +23,7 @@
 在你的`build.gradle`文件中加入如下的依赖
 
 ```groovy
-implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.1'
+implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.2'
 ```
 
 ### Maven
@@ -33,7 +33,7 @@ implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.1'
 <dependency>
     <groupId>com.github.wechatpay-apiv3</groupId>
     <artifactId>wechatpay-apache-httpclient</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.2</version>
 </dependency>
 ```
 
@@ -94,7 +94,7 @@ httpPost.addHeader("Content-type","application/json; charset=utf-8");
 ByteArrayOutputStream bos = new ByteArrayOutputStream();
 ObjectMapper objectMapper = new ObjectMapper();
 
-ObjectNode rootNode = mapper.createObjectNode();
+ObjectNode rootNode = objectMapper.createObjectNode();
 rootNode.put("mchid","1900009191")
         .put("appid", "wxd678efh567hg6787")
         .put("description", "Image形象店-深圳腾大-QQ公仔")
@@ -105,7 +105,7 @@ rootNode.putObject("amount")
 rootNode.putObject("payer")
         .put("openid", "oUpF8uMuAJO_M2pxb1Q9zNjWeS6o");
 
-mapper.writeValue(bos, rootNode);
+objectMapper.writeValue(bos, rootNode);
     
 httpPost.setEntity(new StringEntity(bos.toString("UTF-8")));
 CloseableHttpResponse response = httpClient.execute(httpPost);
@@ -137,10 +137,10 @@ httpPost.addHeader("Content-type","application/json; charset=utf-8");
 ByteArrayOutputStream bos = new ByteArrayOutputStream();
 ObjectMapper objectMapper = new ObjectMapper();
 
-ObjectNode rootNode = mapper.createObjectNode();
+ObjectNode rootNode = objectMapper.createObjectNode();
 rootNode.put("mchid","1900009191");
 
-mapper.writeValue(bos, rootNode);
+objectMapper.writeValue(bos, rootNode);
     
 httpPost.setEntity(new StringEntity(bos.toString("UTF-8")));
 CloseableHttpResponse response = httpClient.execute(httpPost);
