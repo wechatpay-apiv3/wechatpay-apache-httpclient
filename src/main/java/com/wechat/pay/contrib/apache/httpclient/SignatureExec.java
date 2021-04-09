@@ -45,7 +45,7 @@ public class SignatureExec implements ClientExecChain {
   @Override
   public CloseableHttpResponse execute(HttpRoute route, HttpRequestWrapper request,
       HttpClientContext context, HttpExecutionAware execAware) throws IOException, HttpException {
-    if (request.getURI().getHost().endsWith(".mch.weixin.qq.com")) {
+    if (request.getTarget().getHostName().endsWith(".mch.weixin.qq.com")) {
       return executeWithSignature(route, request, context, execAware);
     } else {
       return mainExec.execute(route, request, context, execAware);
