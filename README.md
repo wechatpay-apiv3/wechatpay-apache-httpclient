@@ -39,8 +39,7 @@ implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.2'
 
 ## 开始
 
-如果你使用的是`HttpClientBuilder`或者`HttpClients#custom()`来构造`HttpClient`，你可以直接替换为`WechatPayHttpClientBuilder`。我们提供相应的方法，可以方便的传入商户私钥和微信支付平台证书等信息。
-
+如果你使用的是`HttpClientBuilder`或者`HttpClients#custom()`来构造`HttpClient`，你可以直接替换为`WechatPayHttpClientBuilder`。
 ```java
 import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 
@@ -61,8 +60,8 @@ HttpResponse response = httpClient.execute(...);
 
 + `merchantId`商户号。
 + `merchantSerialNumber`商户证书的证书序列号，请参考[什么是证书序列号](https://wechatpay-api.gitbook.io/wechatpay-api-v3/chang-jian-wen-ti/zheng-shu-xiang-guan#shen-me-shi-zheng-shu-xu-lie-hao)和[如何查看证书序列号](https://wechatpay-api.gitbook.io/wechatpay-api-v3/chang-jian-wen-ti/zheng-shu-xiang-guan#ru-he-cha-kan-zheng-shu-xu-lie-hao)。
-+ `merchantPrivateKey`字符串格式的商户私钥，也就是通过证书工具得到的`apiclient_key.pem`文件中的内容。
-+ `wechatpayCertificates`微信支付平台证书的实例列表，用于应答签名的验证。你也可以使用后面章节提到的“自动更新证书功能”。
++ `merchantPrivateKey`商户私钥`PrivateKey`实例。
++ `wechatpayCertificates`[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu)的`X509Certificate`实例列表，用于应答签名的验证。你也可以使用后面章节提到的“[自动更新证书功能](#自动更新证书功能)”，而不需要关心平台证书的来龙去脉。
 
 ### 示例：获取平台证书
 
@@ -107,7 +106,7 @@ rootNode.putObject("payer")
 
 objectMapper.writeValue(bos, rootNode);
     
-httpPost.setEntity(new StringEntity(bos.toString("UTF-8")));
+httpPost.setEntity(new StringEntity(bos.toString("UTF-8"), "UTF-8"));
 CloseableHttpResponse response = httpClient.execute(httpPost);
 
 String bodyAsString = EntityUtils.toString(response.getEntity());
@@ -142,7 +141,7 @@ rootNode.put("mchid","1900009191");
 
 objectMapper.writeValue(bos, rootNode);
     
-httpPost.setEntity(new StringEntity(bos.toString("UTF-8")));
+httpPost.setEntity(new StringEntity(bos.toString("UTF-8"), "UTF-8"));
 CloseableHttpResponse response = httpClient.execute(httpPost);
 
 String bodyAsString = EntityUtils.toString(response.getEntity());
@@ -169,18 +168,17 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withWechatpay(wechatpayCertificates);
 ```
 
-## 自动更新证书功能（可选）
+## 自动更新证书功能
 
-新版本`>=0.1.5`可使用 AutoUpdateCertificatesVerifier 类，该类于原 CertificatesVerifier 上增加证书的**超时自动更新**（默认与上次更新时间超过一小时后自动更新），并会在首次创建时，进行证书更新。
+版本`>=0.1.5`可使用 AutoUpdateCertificatesVerifier 类替代默认的验签器。它会在构造时自动下载商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu)，并每隔一段时间（默认为1个小时）更新证书。
 
 示例代码：
 
 ```java
-//不需要传入微信支付证书，将会自动更新
+//不需要传入微信支付证书了
 AutoUpdateCertificatesVerifier verifier = new AutoUpdateCertificatesVerifier(
         new WechatPay2Credentials(merchantId, new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
         apiV3Key.getBytes("utf-8"));
-
 
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
