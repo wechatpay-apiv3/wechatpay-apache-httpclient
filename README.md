@@ -60,7 +60,7 @@ HttpResponse response = httpClient.execute(...);
 
 + `merchantId`商户号。
 + `merchantSerialNumber`商户证书的证书序列号，请参考[什么是证书序列号](https://wechatpay-api.gitbook.io/wechatpay-api-v3/chang-jian-wen-ti/zheng-shu-xiang-guan#shen-me-shi-zheng-shu-xu-lie-hao)和[如何查看证书序列号](https://wechatpay-api.gitbook.io/wechatpay-api-v3/chang-jian-wen-ti/zheng-shu-xiang-guan#ru-he-cha-kan-zheng-shu-xu-lie-hao)。
-+ `merchantPrivateKey`商户私钥`PrivateKey`实例。
++ `merchantPrivateKey`[商户私钥](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#shang-hu-api-si-yao)的`PrivateKey`实例，如何加载商户私钥请看[常见问题](#如何加载商户私钥)。
 + `wechatpayCertificates`[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu)的`X509Certificate`实例列表，用于应答签名的验证。你也可以使用后面章节提到的“[自动更新证书功能](#自动更新证书功能)”，而不需要关心平台证书的来龙去脉。
 
 ### 示例：获取平台证书
@@ -172,6 +172,8 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
 
 版本`>=0.1.5`可使用 AutoUpdateCertificatesVerifier 类替代默认的验签器。它会在构造时自动下载商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu)，并每隔一段时间（默认为1个小时）更新证书。
 
+参数说明：[apiV3Key](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/api-v3-mi-yao)是证书解密时使用的对称密钥。
+
 示例代码：
 
 ```java
@@ -255,6 +257,20 @@ try (FileInputStream ins1 = new FileInputStream(file)) {
 
 ## 常见问题
 
+### 如何加载商户私钥
+
+商户申请商户API证书时，会生成商户私钥，并保存在本地证书文件夹的文件`apiclient_key.pem`中。商户开发者可以使用方法`PemUtil.loadPrivateKey()`加载证书。
+
+```java
+# 示例：私钥存储在文件
+PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
+        new FileInputStream("/path/to/apiclient_key.pem"));
+
+# 示例：私钥为String字符串
+PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
+        new ByteArrayInputStream(privateKey.getBytes("utf-8")));
+```
+
 ### 如何下载平台证书？
 
 使用`WechatPayHttpClientBuilder`需要调用`withWechatpay`设置[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu)，而平台证书又只能通过调用[获取平台证书接口](https://wechatpay-api.gitbook.io/wechatpay-api-v3/jie-kou-wen-dang/ping-tai-zheng-shu#huo-qu-ping-tai-zheng-shu-lie-biao)下载。为了解开"死循环"，你可以在第一次下载平台证书时，按照下述方法临时"跳过”应答签名的验证。
@@ -298,6 +314,10 @@ dependencies {
     ...
 }
 ```
+
+### 更多常见问题
+
+请看商户平台的[常见问题](https://pay.weixin.qq.com/wiki/doc/apiv3_partner/wechatpay/wechatpay7_0.shtml)，或者[这里](https://wechatpay-api.gitbook.io/wechatpay-api-v3/chang-jian-wen-ti)。
 
 ## 联系我们
 
