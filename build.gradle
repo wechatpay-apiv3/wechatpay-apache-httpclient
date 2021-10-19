@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.github.wechatpay-apiv3'
-version '0.2.2'
+version '0.2.3'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -17,10 +17,10 @@ repositories {
 ext {
     publishedArtifactId = project.name
 
-    httpclient_version = "4.5.12"
+    httpclient_version = "4.5.13"
     slf4j_version = "1.7.30"
     junit_version = "4.12"
-    jackson_version = "2.9.10"
+    jackson_version = "2.12.5"
 }
 
 jar {
