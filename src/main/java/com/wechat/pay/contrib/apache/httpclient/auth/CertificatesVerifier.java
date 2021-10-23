@@ -52,8 +52,7 @@ public class CertificatesVerifier implements Verifier {
         x509Cert.checkValidity();
 
         return x509Cert;
-      } catch (CertificateExpiredException | CertificateNotYetValidException e) {
-        continue;
+      } catch (CertificateExpiredException | CertificateNotYetValidException ignored) {
       }
     }
 

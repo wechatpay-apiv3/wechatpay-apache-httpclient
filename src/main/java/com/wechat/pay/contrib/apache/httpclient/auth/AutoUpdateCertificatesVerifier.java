@@ -7,6 +7,7 @@ import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 import com.wechat.pay.contrib.apache.httpclient.util.AesUtil;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
@@ -91,17 +92,15 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
   }
 
   private void autoUpdateCert() throws IOException, GeneralSecurityException {
-    CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
-        .withCredentials(credentials)
-        .withValidator(verifier == null ? (response) -> true : new WechatPay2Validator(verifier))
-        .build();
+    try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
+            .withCredentials(credentials)
+            .withValidator(verifier == null ? (response) -> true : new WechatPay2Validator(verifier))
+            .build()) {
 
-    try {
       HttpGet httpGet = new HttpGet(CertDownloadPath);
       httpGet.addHeader("Accept", "application/json");
 
-      CloseableHttpResponse response = httpClient.execute(httpGet);
-      try {
+      try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
         int statusCode = response.getStatusLine().getStatusCode();
         String body = EntityUtils.toString(response.getEntity());
         if (statusCode == 200) {
@@ -114,11 +113,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         } else {
           log.warn("Auto update cert failed, statusCode = " + statusCode + ",body = " + body);
         }
-      } finally {
-        response.close();
       }
-    } finally {
-      httpClient.close();
     }
   }
 
@@ -136,15 +131,15 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         JsonNode encryptCertificateNode = dataNode.get(i).get("encrypt_certificate");
         //解密
         String cert = decryptor.decryptToString(
-            encryptCertificateNode.get("associated_data").toString().replaceAll("\"", "")
-                .getBytes("utf-8"),
-            encryptCertificateNode.get("nonce").toString().replaceAll("\"", "")
-                .getBytes("utf-8"),
-            encryptCertificateNode.get("ciphertext").toString().replaceAll("\"", ""));
+            encryptCertificateNode.get("associated_data").toString().replace("\"", "")
+                .getBytes(StandardCharsets.UTF_8),
+            encryptCertificateNode.get("nonce").toString().replace("\"", "")
+                .getBytes(StandardCharsets.UTF_8),
+            encryptCertificateNode.get("ciphertext").toString().replace("\"", ""));
 
         CertificateFactory cf = CertificateFactory.getInstance("X509");
         X509Certificate x509Cert = (X509Certificate) cf.generateCertificate(
-            new ByteArrayInputStream(cert.getBytes("utf-8"))
+            new ByteArrayInputStream(cert.getBytes(StandardCharsets.UTF_8))
         );
         try {
           x509Cert.checkValidity();

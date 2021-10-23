@@ -4,6 +4,7 @@ import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -47,9 +48,9 @@ public class HttpClientBuilderTest {
   @Before
   public void setup() throws IOException  {
     PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
-        new ByteArrayInputStream(privateKey.getBytes("utf-8")));
+        new ByteArrayInputStream(privateKey.getBytes(StandardCharsets.UTF_8)));
     X509Certificate wechatpayCertificate = PemUtil.loadCertificate(
-        new ByteArrayInputStream(certificate.getBytes("utf-8")));
+        new ByteArrayInputStream(certificate.getBytes(StandardCharsets.UTF_8)));
 
     ArrayList<X509Certificate> listCertificates = new ArrayList<>();
     listCertificates.add(wechatpayCertificate);
@@ -91,7 +92,7 @@ public class HttpClientBuilderTest {
   @Test
   public void getCertificatesWithoutCertTest() throws Exception {
     PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
-        new ByteArrayInputStream(privateKey.getBytes("utf-8")));
+        new ByteArrayInputStream(privateKey.getBytes(StandardCharsets.UTF_8)));
 
     httpClient = WechatPayHttpClientBuilder.create()
         .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
@@ -107,7 +108,7 @@ public class HttpClientBuilderTest {
         "https://api.mch.weixin.qq.com/v3/marketing/favor/users/oHkLxt_htg84TUEbzvlMwQzVDBqo/coupons");
 
 
-    InputStream stream = new ByteArrayInputStream(reqdata.getBytes("utf-8"));
+    InputStream stream = new ByteArrayInputStream(reqdata.getBytes(StandardCharsets.UTF_8));
     InputStreamEntity reqEntity = new InputStreamEntity(stream);
     reqEntity.setContentType("application/json");
     httpPost.setEntity(reqEntity);

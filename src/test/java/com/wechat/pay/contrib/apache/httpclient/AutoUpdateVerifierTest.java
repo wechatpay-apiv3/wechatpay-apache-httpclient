@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import java.io.*;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 
 import static org.junit.Assert.assertEquals;
@@ -42,12 +43,12 @@ public class AutoUpdateVerifierTest {
   @Before
   public void setup() throws IOException {
     PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
-        new ByteArrayInputStream(privateKey.getBytes("utf-8")));
+        new ByteArrayInputStream(privateKey.getBytes(StandardCharsets.UTF_8)));
 
     //使用自动更新的签名验证器，不需要传入证书
     verifier = new AutoUpdateCertificatesVerifier(
         new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
-        apiV3Key.getBytes("utf-8"));
+        apiV3Key.getBytes(StandardCharsets.UTF_8));
 
     httpClient = WechatPayHttpClientBuilder.create()
         .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
@@ -62,7 +63,7 @@ public class AutoUpdateVerifierTest {
 
   @Test
   public void autoUpdateVerifierTest() throws Exception {
-    assertTrue(verifier.verify(serialNumber, message.getBytes("utf-8"), signature));
+    assertTrue(verifier.verify(serialNumber, message.getBytes(StandardCharsets.UTF_8), signature));
   }
 
   @Test

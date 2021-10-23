@@ -2,6 +2,7 @@ package com.wechat.pay.contrib.apache.httpclient.auth;
 
 import com.wechat.pay.contrib.apache.httpclient.Validator;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Instant;
@@ -41,7 +42,7 @@ public class WechatPay2Validator implements Validator {
       String serial = response.getFirstHeader("Wechatpay-Serial").getValue();
       String signature = response.getFirstHeader("Wechatpay-Signature").getValue();
 
-      if (!verifier.verify(serial, message.getBytes("utf-8"), signature)) {
+      if (!verifier.verify(serial, message.getBytes(StandardCharsets.UTF_8), signature)) {
         throw verifyFail("serial=[%s] message=[%s] sign=[%s], request-id=[%s]",
             serial, message, signature,
             response.getFirstHeader("Request-ID").getValue());

@@ -10,6 +10,7 @@ import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import com.wechat.pay.contrib.apache.httpclient.util.RsaCryptoUtil;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -37,12 +38,12 @@ public class RsaCryptoTest {
   @Before
   public void setup() throws IOException {
     PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
-        new ByteArrayInputStream(privateKey.getBytes("utf-8")));
+        new ByteArrayInputStream(privateKey.getBytes(StandardCharsets.UTF_8)));
 
     //使用自动更新的签名验证器，不需要传入证书
     verifier = new AutoUpdateCertificatesVerifier(
         new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
-        apiV3Key.getBytes("utf-8"));
+        apiV3Key.getBytes(StandardCharsets.UTF_8));
 
     httpClient = WechatPayHttpClientBuilder.create()
         .withMerchant(mchId, mchSerialNo, merchantPrivateKey)

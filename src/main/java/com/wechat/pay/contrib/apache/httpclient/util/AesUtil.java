@@ -1,6 +1,6 @@
 package com.wechat.pay.contrib.apache.httpclient.util;
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -25,7 +25,7 @@ public class AesUtil {
   }
 
   public String decryptToString(byte[] associatedData, byte[] nonce, String ciphertext)
-      throws GeneralSecurityException, IOException {
+      throws GeneralSecurityException {
     try {
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
 
@@ -35,7 +35,7 @@ public class AesUtil {
       cipher.init(Cipher.DECRYPT_MODE, key, spec);
       cipher.updateAAD(associatedData);
 
-      return new String(cipher.doFinal(Base64.getDecoder().decode(ciphertext)), "utf-8");
+      return new String(cipher.doFinal(Base64.getDecoder().decode(ciphertext)), StandardCharsets.UTF_8);
     } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
       throw new IllegalStateException(e);
     } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
