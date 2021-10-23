@@ -14,7 +14,6 @@ public class WechatPayUploadHttpPost extends HttpPost {
 
   private WechatPayUploadHttpPost(URI uri, String meta) {
     super(uri);
-
     this.meta = meta;
   }
 
@@ -27,8 +26,8 @@ public class WechatPayUploadHttpPost extends HttpPost {
     private String fileName;
     private String fileSha256;
     private InputStream fileInputStream;
-    private org.apache.http.entity.ContentType fileContentType;
-    private URI uri;
+    private ContentType fileContentType;
+    private final URI uri;
 
     public Builder(URI uri) {
       this.uri = uri;
@@ -63,11 +62,11 @@ public class WechatPayUploadHttpPost extends HttpPost {
 
       MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
       entityBuilder.setMode(HttpMultipartMode.RFC6532)
-          .addBinaryBody("file", fileInputStream, fileContentType, fileName)
-          .addTextBody("meta", meta, org.apache.http.entity.ContentType.APPLICATION_JSON);
+              .addBinaryBody("file", fileInputStream, fileContentType, fileName)
+              .addTextBody("meta", meta, ContentType.APPLICATION_JSON);
 
       request.setEntity(entityBuilder.build());
-      request.addHeader("Accept", org.apache.http.entity.ContentType.APPLICATION_JSON.toString());
+      request.addHeader(Headers.ACCEPT, Headers.ACCEPT_APPLICATION_JSON);
 
       return request;
     }

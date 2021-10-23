@@ -1,7 +1,5 @@
 package com.wechat.pay.contrib.apache.httpclient.util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -17,29 +15,20 @@ import java.util.Base64;
 
 public class PemUtil {
 
-  public static PrivateKey loadPrivateKey(InputStream inputStream) {
+  public static PrivateKey loadPrivateKey(String privateKey) {
+    privateKey = privateKey
+            .replace("-----BEGIN PRIVATE KEY-----", "")
+            .replace("-----END PRIVATE KEY-----", "")
+            .replaceAll("\\s+", "");
+
     try {
-      ByteArrayOutputStream array = new ByteArrayOutputStream();
-      byte[] buffer = new byte[1024];
-      int length;
-      while ((length = inputStream.read(buffer)) != -1) {
-        array.write(buffer, 0, length);
-      }
-
-      String privateKey = array.toString("utf-8")
-          .replace("-----BEGIN PRIVATE KEY-----", "")
-          .replace("-----END PRIVATE KEY-----", "")
-          .replaceAll("\\s+", "");
-
       KeyFactory kf = KeyFactory.getInstance("RSA");
-      return kf.generatePrivate(
-          new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey)));
+      return kf.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey)));
+
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException("当前Java环境不支持RSA", e);
     } catch (InvalidKeySpecException e) {
       throw new RuntimeException("无效的密钥格式");
-    } catch (IOException e) {
-      throw new RuntimeException("无效的密钥");
     }
   }
 

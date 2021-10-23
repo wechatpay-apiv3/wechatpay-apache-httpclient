@@ -1,10 +1,12 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
-import com.wechat.pay.contrib.apache.httpclient.auth.AutoUpdateCertificatesVerifier;
-import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
-import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
-import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
-import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -15,14 +17,13 @@ import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import com.wechat.pay.contrib.apache.httpclient.auth.AutoUpdateCertificatesVerifier;
+import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
+import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
+import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
+import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 
-import java.io.*;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.security.PrivateKey;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class AutoUpdateVerifierTest {
 
@@ -42,8 +43,7 @@ public class AutoUpdateVerifierTest {
 
   @Before
   public void setup() throws IOException {
-    PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
-        new ByteArrayInputStream(privateKey.getBytes(StandardCharsets.UTF_8)));
+    PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
     //使用自动更新的签名验证器，不需要传入证书
     verifier = new AutoUpdateCertificatesVerifier(
@@ -71,15 +71,15 @@ public class AutoUpdateVerifierTest {
     URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/certificates");
     HttpGet httpGet = new HttpGet(uriBuilder.build());
     httpGet.addHeader("Accept", "application/json");
-    CloseableHttpResponse response1 = httpClient.execute(httpGet);
-    assertEquals(200, response1.getStatusLine().getStatusCode());
+    CloseableHttpResponse response = httpClient.execute(httpGet);
+    assertEquals(200, response.getStatusLine().getStatusCode());
     try {
-      HttpEntity entity1 = response1.getEntity();
+      HttpEntity entity = response.getEntity();
       // do something useful with the response body
       // and ensure it is fully consumed
-      EntityUtils.consume(entity1);
+      EntityUtils.consume(entity);
     } finally {
-      response1.close();
+      response.close();
     }
   }
 
@@ -90,23 +90,20 @@ public class AutoUpdateVerifierTest {
     URI uri = new URI("https://api.mch.weixin.qq.com/v3/merchant/media/upload");
 
     File file = new File(filePath);
-    try (FileInputStream s1 = new FileInputStream(file)) {
-      String sha256 = DigestUtils.sha256Hex(s1);
-      try (InputStream s2 = new FileInputStream(file)) {
+    try (FileInputStream fileIs = new FileInputStream(file)) {
+      String sha256 = DigestUtils.sha256Hex(fileIs);
+      try (InputStream is = new FileInputStream(file)) {
         WechatPayUploadHttpPost request = new WechatPayUploadHttpPost.Builder(uri)
-            .withImage(file.getName(), sha256, s2)
-            .build();
+                .withImage(file.getName(), sha256, is)
+                .build();
 
-        CloseableHttpResponse response1 = httpClient.execute(request);
-        assertEquals(200, response1.getStatusLine().getStatusCode());
-        try {
-          HttpEntity entity1 = response1.getEntity();
+        try (CloseableHttpResponse response = httpClient.execute(request)) {
+          assertEquals(200, response.getStatusLine().getStatusCode());
+          HttpEntity entity1 = response.getEntity();
           // do something useful with the response body
           // and ensure it is fully consumed
           String s = EntityUtils.toString(entity1);
           System.out.println(s);
-        } finally {
-          response1.close();
         }
       }
     }

@@ -8,9 +8,9 @@ import java.security.SignatureException;
 import java.util.Base64;
 
 public class PrivateKeySigner implements Signer {
-  private String certificateSerialNumber;
 
-  private PrivateKey privateKey;
+  protected String certificateSerialNumber;
+  protected PrivateKey privateKey;
 
   public PrivateKeySigner(String serialNumber, PrivateKey privateKey) {
     this.certificateSerialNumber = serialNumber;
@@ -23,9 +23,8 @@ public class PrivateKeySigner implements Signer {
       Signature sign = Signature.getInstance("SHA256withRSA");
       sign.initSign(privateKey);
       sign.update(message);
+      return new SignatureResult(Base64.getEncoder().encodeToString(sign.sign()), certificateSerialNumber);
 
-      return new SignatureResult(
-          Base64.getEncoder().encodeToString(sign.sign()), certificateSerialNumber);
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException("当前Java环境不支持SHA256withRSA", e);
     } catch (SignatureException e) {
@@ -34,4 +33,5 @@ public class PrivateKeySigner implements Signer {
       throw new RuntimeException("无效的私钥", e);
     }
   }
+
 }

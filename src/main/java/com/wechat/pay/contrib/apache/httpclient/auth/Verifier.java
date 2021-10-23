@@ -7,4 +7,5 @@ public interface Verifier {
   boolean verify(String serialNumber, byte[] message, String signature);
 
   X509Certificate getValidCertificate();
+
 }

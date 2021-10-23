@@ -1,17 +1,18 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
-import com.wechat.pay.contrib.apache.httpclient.auth.CertificatesVerifier;
-import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
-import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
-import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.execchain.ClientExecChain;
+import com.wechat.pay.contrib.apache.httpclient.auth.CertificatesVerifier;
+import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
+import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
+import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 
 public class WechatPayHttpClientBuilder extends HttpClientBuilder {
+
   private Credentials credentials;
   private Validator validator;
 
@@ -34,8 +35,7 @@ public class WechatPayHttpClientBuilder extends HttpClientBuilder {
   }
 
   public WechatPayHttpClientBuilder withMerchant(String merchantId, String serialNo, PrivateKey privateKey) {
-    this.credentials =
-        new WechatPay2Credentials(merchantId, new PrivateKeySigner(serialNo, privateKey));
+    this.credentials = new WechatPay2Credentials(merchantId, new PrivateKeySigner(serialNo, privateKey));
     return this;
   }
 
@@ -44,7 +44,8 @@ public class WechatPayHttpClientBuilder extends HttpClientBuilder {
     return this;
   }
 
-  public WechatPayHttpClientBuilder withWechatpay(List<X509Certificate> certificates) {
+  public WechatPayHttpClientBuilder withWechatPay(List<X509Certificate> certificates) {
+    // TODO 这个方法的命名不能修改，否则会存在向后版本兼容性问题
     this.validator = new WechatPay2Validator(new CertificatesVerifier(certificates));
     return this;
   }
@@ -62,7 +63,6 @@ public class WechatPayHttpClientBuilder extends HttpClientBuilder {
     if (validator == null) {
       throw new IllegalArgumentException("缺少签名验证信息");
     }
-
     return super.build();
   }
 
@@ -70,4 +70,5 @@ public class WechatPayHttpClientBuilder extends HttpClientBuilder {
   protected ClientExecChain decorateProtocolExec(final ClientExecChain requestExecutor) {
     return new SignatureExec(this.credentials, this.validator, requestExecutor);
   }
+
 }

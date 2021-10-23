@@ -8,4 +8,5 @@ public interface Credentials {
   String getSchema();
 
   String getToken(HttpRequestWrapper request) throws IOException;
+
 }

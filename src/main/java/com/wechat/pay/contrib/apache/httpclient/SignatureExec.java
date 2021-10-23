@@ -1,5 +1,6 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
+import java.io.IOException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
@@ -12,21 +13,19 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.execchain.ClientExecChain;
 
-import java.io.IOException;
-
 public class SignatureExec implements ClientExecChain {
+
   final ClientExecChain mainExec;
   final Credentials credentials;
   final Validator validator;
 
-  SignatureExec(Credentials credentials, Validator validator, ClientExecChain mainExec) {
+  protected SignatureExec(Credentials credentials, Validator validator, ClientExecChain mainExec) {
     this.credentials = credentials;
     this.validator = validator;
     this.mainExec = mainExec;
   }
 
-  protected void convertToRepeatableResponseEntity(CloseableHttpResponse response)
-      throws IOException {
+  protected void convertToRepeatableResponseEntity(CloseableHttpResponse response) throws IOException {
     HttpEntity entity = response.getEntity();
     if (entity != null) {
       response.setEntity(new BufferedHttpEntity(entity));
@@ -43,8 +42,8 @@ public class SignatureExec implements ClientExecChain {
   }
 
   @Override
-  public CloseableHttpResponse execute(HttpRoute route, HttpRequestWrapper request,
-      HttpClientContext context, HttpExecutionAware execAware) throws IOException, HttpException {
+  public CloseableHttpResponse execute(HttpRoute route, HttpRequestWrapper request, HttpClientContext context,
+                                       HttpExecutionAware execAware) throws IOException, HttpException {
     if (request.getTarget().getHostName().endsWith(".mch.weixin.qq.com")) {
       return executeWithSignature(route, request, context, execAware);
     } else {
@@ -52,15 +51,14 @@ public class SignatureExec implements ClientExecChain {
     }
   }
 
-  private CloseableHttpResponse executeWithSignature(HttpRoute route, HttpRequestWrapper request,
-      HttpClientContext context, HttpExecutionAware execAware) throws IOException, HttpException {
+  protected CloseableHttpResponse executeWithSignature(HttpRoute route, HttpRequestWrapper request, HttpClientContext context,
+                                                       HttpExecutionAware execAware) throws IOException, HttpException {
     // 上传类不需要消耗两次故不做转换
     if (!(request.getOriginal() instanceof WechatPayUploadHttpPost)) {
       convertToRepeatableRequestEntity(request);
     }
     // 添加认证信息
-    request.addHeader("Authorization",
-        credentials.getSchema() + " " + credentials.getToken(request));
+    request.addHeader(Headers.AUTHORIZATION, credentials.getSchema() + " " + credentials.getToken(request));
 
     // 执行
     CloseableHttpResponse response = mainExec.execute(route, request, context, execAware);

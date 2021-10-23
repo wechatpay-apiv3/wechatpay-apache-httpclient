@@ -1,24 +1,23 @@
 package com.wechat.pay.contrib.apache.httpclient.auth;
 
-import com.wechat.pay.contrib.apache.httpclient.Credentials;
-import com.wechat.pay.contrib.apache.httpclient.WechatPayUploadHttpPost;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
+import com.wechat.pay.contrib.apache.httpclient.Credentials;
+import com.wechat.pay.contrib.apache.httpclient.WechatPayUploadHttpPost;
 
 public class WechatPay2Credentials implements Credentials {
-  private static final Logger log = LoggerFactory.getLogger(WechatPay2Credentials.class);
 
-  private static final String SYMBOLS =
-      "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  private static final SecureRandom RANDOM = new SecureRandom();
+  protected static final Logger log = LoggerFactory.getLogger(WechatPay2Credentials.class);
+
+  protected static final String SYMBOLS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  protected static final SecureRandom RANDOM = new SecureRandom();
   protected String merchantId;
   protected Signer signer;
 
@@ -68,8 +67,7 @@ public class WechatPay2Credentials implements Credentials {
     return token;
   }
 
-  protected final String buildMessage(String nonce, long timestamp, HttpRequestWrapper request)
-      throws IOException {
+  protected String buildMessage(String nonce, long timestamp, HttpRequestWrapper request) throws IOException {
     URI uri = request.getURI();
     String canonicalUrl = uri.getRawPath();
     if (uri.getQuery() != null) {

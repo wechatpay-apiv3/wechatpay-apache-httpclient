@@ -1,14 +1,5 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
-import static org.junit.Assert.assertTrue;
-
-import com.wechat.pay.contrib.apache.httpclient.auth.AutoUpdateCertificatesVerifier;
-import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
-import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
-import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
-import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
-import com.wechat.pay.contrib.apache.httpclient.util.RsaCryptoUtil;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
@@ -22,6 +13,14 @@ import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import com.wechat.pay.contrib.apache.httpclient.auth.AutoUpdateCertificatesVerifier;
+import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
+import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
+import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
+import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
+import com.wechat.pay.contrib.apache.httpclient.util.RsaCryptoUtil;
+
+import static org.junit.Assert.*;
 
 public class RsaCryptoTest {
 
@@ -37,8 +36,7 @@ public class RsaCryptoTest {
 
   @Before
   public void setup() throws IOException {
-    PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
-        new ByteArrayInputStream(privateKey.getBytes(StandardCharsets.UTF_8)));
+    PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
     //使用自动更新的签名验证器，不需要传入证书
     verifier = new AutoUpdateCertificatesVerifier(
@@ -72,20 +70,19 @@ public class RsaCryptoTest {
     String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getValidCertificate());
 
     String data = "{\n"
-        + "  \"store_id\" : 1234,\n"
-        + "  \"corpid\" : \"1234567890\",\n"
-        + "  \"name\" : \"" + ciphertext + "\",\n"
-        + "  \"mobile\" : \"" + ciphertext + "\",\n"
-        + "  \"qr_code\" : \"https://open.work.weixin.qq.com/wwopen/userQRCode?vcode=xxx\",\n"
-        + "  \"sub_mchid\" : \"1234567890\",\n"
-        + "  \"avatar\" : \"logo\",\n"
-        + "  \"userid\" : \"robert\"\n"
-        + "}";
-    StringEntity reqEntity = new StringEntity(
-        data, ContentType.create("application/json", "utf-8"));
+            + "  \"store_id\" : 1234,\n"
+            + "  \"corpid\" : \"1234567890\",\n"
+            + "  \"name\" : \"" + ciphertext + "\",\n"
+            + "  \"mobile\" : \"" + ciphertext + "\",\n"
+            + "  \"qr_code\" : \"https://open.work.weixin.qq.com/wwopen/userQRCode?vcode=xxx\",\n"
+            + "  \"sub_mchid\" : \"1234567890\",\n"
+            + "  \"avatar\" : \"logo\",\n"
+            + "  \"userid\" : \"robert\"\n"
+            + "}";
+    StringEntity reqEntity = new StringEntity(data, ContentType.APPLICATION_JSON);
     httpPost.setEntity(reqEntity);
-    httpPost.addHeader("Accept", "application/json");
-    httpPost.addHeader("Wechatpay-Serial", "5157F09EFDC096DE15EBE81A47057A7232F1B8E1");
+    httpPost.addHeader(Headers.ACCEPT, Headers.ACCEPT_APPLICATION_JSON);
+    httpPost.addHeader(Headers.WECHATPAY_SERIAL, "5157F09EFDC096DE15EBE81A47057A7232F1B8E1");
 
     CloseableHttpResponse response = httpClient.execute(httpPost);
     assertTrue(response.getStatusLine().getStatusCode() != 401);
