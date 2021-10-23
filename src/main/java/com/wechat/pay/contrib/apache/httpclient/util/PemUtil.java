@@ -1,5 +1,7 @@
 package com.wechat.pay.contrib.apache.httpclient.util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -30,6 +32,21 @@ public class PemUtil {
     } catch (InvalidKeySpecException e) {
       throw new RuntimeException("无效的密钥格式");
     }
+  }
+
+  public static PrivateKey loadPrivateKey(InputStream inputStream) {
+    ByteArrayOutputStream os = new ByteArrayOutputStream(2048);
+    byte[] buffer = new byte[1024];
+    String privateKey;
+    try {
+      for (int length; (length = inputStream.read(buffer)) != -1; ) {
+        os.write(buffer, 0, length);
+      }
+      privateKey = os.toString("UTF-8");
+    } catch (IOException e) {
+      throw new IllegalArgumentException("无效的密钥", e);
+    }
+    return loadPrivateKey(privateKey);
   }
 
   public static X509Certificate loadCertificate(InputStream inputStream) {

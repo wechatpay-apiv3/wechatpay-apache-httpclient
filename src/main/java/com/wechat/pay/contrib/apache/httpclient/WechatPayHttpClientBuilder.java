@@ -45,9 +45,17 @@ public class WechatPayHttpClientBuilder extends HttpClientBuilder {
   }
 
   public WechatPayHttpClientBuilder withWechatPay(List<X509Certificate> certificates) {
-    // TODO 这个方法的命名不能修改，否则会存在向后版本兼容性问题
     this.validator = new WechatPay2Validator(new CertificatesVerifier(certificates));
     return this;
+  }
+
+  /**
+   * Please use {@link #withWechatPay(List)} instead
+   */
+  @SuppressWarnings("SpellCheckingInspection")
+  @Deprecated
+  public WechatPayHttpClientBuilder withWechatpay(List<X509Certificate> certificates) {
+    return withWechatPay(certificates);
   }
 
   public WechatPayHttpClientBuilder withValidator(Validator validator) {
