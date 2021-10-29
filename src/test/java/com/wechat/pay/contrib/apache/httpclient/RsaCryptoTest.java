@@ -35,7 +35,7 @@ public class RsaCryptoTest {
     private AutoUpdateCertificatesVerifier verifier;
 
     @Before
-    public void setup() throws IOException {
+    public void setup() {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
         //使用自动更新的签名验证器，不需要传入证书

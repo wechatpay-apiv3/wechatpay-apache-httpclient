@@ -43,7 +43,7 @@ public class AutoUpdateVerifierTest {
     private AutoUpdateCertificatesVerifier verifier;
 
     @Before
-    public void setup() throws IOException {
+    public void setup() {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
         //使用自动更新的签名验证器，不需要传入证书
@@ -63,7 +63,7 @@ public class AutoUpdateVerifierTest {
     }
 
     @Test
-    public void autoUpdateVerifierTest() throws Exception {
+    public void autoUpdateVerifierTest() {
         assertTrue(verifier.verify(serialNumber, message.getBytes(StandardCharsets.UTF_8), signature));
     }
 

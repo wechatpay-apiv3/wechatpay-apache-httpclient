@@ -46,7 +46,7 @@ public class HttpClientBuilderTest {
     private CloseableHttpClient httpClient;
 
     @Before
-    public void setup() throws IOException {
+    public void setup() {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
         X509Certificate wechatPayCertificate = PemUtil.loadCertificate(
                 new ByteArrayInputStream(certificate.getBytes(StandardCharsets.UTF_8)));
