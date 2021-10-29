@@ -1,5 +1,9 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
+import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -13,13 +17,11 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -73,7 +75,7 @@ public class HttpClientBuilderTest {
 
         HttpGet httpGet = new HttpGet(uriBuilder.build());
 
-        doSend(httpGet, null, response -> assertEquals(200, response.getStatusLine().getStatusCode()));
+        doSend(httpGet, null, response -> assertEquals(SC_OK, response.getStatusLine().getStatusCode()));
 
     }
 
@@ -96,8 +98,8 @@ public class HttpClientBuilderTest {
 
         final byte[] bytes = requestBody.getBytes(StandardCharsets.UTF_8);
         final InputStream stream = new ByteArrayInputStream(bytes);
-        doSend(httpPost, new InputStreamEntity(stream, bytes.length, ContentType.APPLICATION_JSON),
-                response -> assertTrue(response.getStatusLine().getStatusCode() != 401));
+        doSend(httpPost, new InputStreamEntity(stream, bytes.length, APPLICATION_JSON),
+                response -> assertTrue(response.getStatusLine().getStatusCode() != SC_UNAUTHORIZED));
     }
 
     @Test
@@ -105,8 +107,8 @@ public class HttpClientBuilderTest {
         HttpPost httpPost = new HttpPost(
                 "https://api.mch.weixin.qq.com/v3/marketing/favor/users/oHkLxt_htg84TUEbzvlMwQzVDBqo/coupons");
 
-        doSend(httpPost, new StringEntity(requestBody, ContentType.APPLICATION_JSON),
-                response -> assertTrue(response.getStatusLine().getStatusCode() != 401));
+        doSend(httpPost, new StringEntity(requestBody, APPLICATION_JSON),
+                response -> assertTrue(response.getStatusLine().getStatusCode() != SC_UNAUTHORIZED));
     }
 
     protected void doSend(HttpUriRequest request, HttpEntity entity, Consumer<CloseableHttpResponse> responseCallback)
@@ -114,7 +116,7 @@ public class HttpClientBuilderTest {
         if (entity != null && request instanceof HttpPost) {
             ((HttpPost) request).setEntity(entity);
         }
-        request.addHeader(HttpHeaders.ACCEPT, Headers.ACCEPT_APPLICATION_JSON);
+        request.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
 
         try (CloseableHttpResponse response = httpClient.execute(request)) {
             responseCallback.accept(response);

@@ -1,9 +1,12 @@
 package com.wechat.pay.contrib.apache.httpclient.auth;
 
+import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wechat.pay.contrib.apache.httpclient.Credentials;
-import com.wechat.pay.contrib.apache.httpclient.Headers;
 import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 import com.wechat.pay.contrib.apache.httpclient.util.AesUtil;
 import java.io.ByteArrayInputStream;
@@ -89,12 +92,12 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
                 .build()) {
 
             HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);
-            httpGet.addHeader(Headers.ACCEPT, Headers.ACCEPT_APPLICATION_JSON);
+            httpGet.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
 
             try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
                 int statusCode = response.getStatusLine().getStatusCode();
                 String body = EntityUtils.toString(response.getEntity());
-                if (statusCode == 200) {
+                if (statusCode == SC_OK) {
                     List<X509Certificate> newCertList = deserializeToCerts(apiV3Key, body);
                     if (newCertList.isEmpty()) {
                         log.warn("Cert list is empty");

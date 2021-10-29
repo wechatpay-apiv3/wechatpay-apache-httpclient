@@ -1,5 +1,6 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -72,7 +73,7 @@ public class AutoUpdateVerifierTest {
         HttpGet httpGet = new HttpGet(uriBuilder.build());
         httpGet.addHeader("Accept", "application/json");
         CloseableHttpResponse response = httpClient.execute(httpGet);
-        assertEquals(200, response.getStatusLine().getStatusCode());
+        assertEquals(SC_OK, response.getStatusLine().getStatusCode());
         try {
             HttpEntity entity = response.getEntity();
             // do something useful with the response body
@@ -98,7 +99,7 @@ public class AutoUpdateVerifierTest {
                         .build();
 
                 try (CloseableHttpResponse response = httpClient.execute(request)) {
-                    assertEquals(200, response.getStatusLine().getStatusCode());
+                    assertEquals(SC_OK, response.getStatusLine().getStatusCode());
                     HttpEntity entity1 = response.getEntity();
                     // do something useful with the response body
                     // and ensure it is fully consumed

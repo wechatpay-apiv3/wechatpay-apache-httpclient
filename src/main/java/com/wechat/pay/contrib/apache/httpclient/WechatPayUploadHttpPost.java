@@ -1,5 +1,8 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
+import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLConnection;
@@ -63,10 +66,10 @@ public class WechatPayUploadHttpPost extends HttpPost {
             MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
             entityBuilder.setMode(HttpMultipartMode.RFC6532)
                     .addBinaryBody("file", fileInputStream, fileContentType, fileName)
-                    .addTextBody("meta", meta, ContentType.APPLICATION_JSON);
+                    .addTextBody("meta", meta, APPLICATION_JSON);
 
             request.setEntity(entityBuilder.build());
-            request.addHeader(Headers.ACCEPT, Headers.ACCEPT_APPLICATION_JSON);
+            request.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
 
             return request;
         }

@@ -1,5 +1,9 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
+import static org.apache.http.HttpHeaders.AUTHORIZATION;
+import static org.apache.http.HttpStatus.SC_MULTIPLE_CHOICES;
+import static org.apache.http.HttpStatus.SC_OK;
+
 import java.io.IOException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -13,6 +17,9 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.execchain.ClientExecChain;
 
+/**
+ * @author bruse
+ */
 public class SignatureExec implements ClientExecChain {
 
     final ClientExecChain mainExec;
@@ -59,14 +66,14 @@ public class SignatureExec implements ClientExecChain {
             convertToRepeatableRequestEntity(request);
         }
         // 添加认证信息
-        request.addHeader(Headers.AUTHORIZATION, credentials.getSchema() + " " + credentials.getToken(request));
+        request.addHeader(AUTHORIZATION, credentials.getSchema() + " " + credentials.getToken(request));
 
         // 执行
         CloseableHttpResponse response = mainExec.execute(route, request, context, execAware);
 
         // 对成功应答验签
         StatusLine statusLine = response.getStatusLine();
-        if (statusLine.getStatusCode() >= 200 && statusLine.getStatusCode() < 300) {
+        if (statusLine.getStatusCode() >= SC_OK && statusLine.getStatusCode() < SC_MULTIPLE_CHOICES) {
             convertToRepeatableResponseEntity(response);
             if (!validator.validate(response)) {
                 throw new HttpException("应答的微信支付签名验证失败");

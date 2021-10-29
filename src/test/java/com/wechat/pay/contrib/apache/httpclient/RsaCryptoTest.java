@@ -1,5 +1,10 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
+import static com.wechat.pay.contrib.apache.httpclient.constant.WechatPayHttpHeaders.WECHAT_PAY_SERIAL;
+import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.junit.Assert.assertTrue;
 
 import com.wechat.pay.contrib.apache.httpclient.auth.AutoUpdateCertificatesVerifier;
@@ -14,7 +19,6 @@ import java.security.PrivateKey;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
@@ -79,14 +83,14 @@ public class RsaCryptoTest {
                 + "  \"avatar\" : \"logo\",\n"
                 + "  \"userid\" : \"robert\"\n"
                 + "}";
-        StringEntity reqEntity = new StringEntity(data, ContentType.APPLICATION_JSON);
+        StringEntity reqEntity = new StringEntity(data, APPLICATION_JSON);
         httpPost.setEntity(reqEntity);
-        httpPost.addHeader(Headers.ACCEPT, Headers.ACCEPT_APPLICATION_JSON);
-        httpPost.addHeader(Headers.WECHATPAY_SERIAL, "5157F09EFDC096DE15EBE81A47057A7232F1B8E1");
+        httpPost.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
+        httpPost.addHeader(WECHAT_PAY_SERIAL, "5157F09EFDC096DE15EBE81A47057A7232F1B8E1");
 
         CloseableHttpResponse response = httpClient.execute(httpPost);
-        assertTrue(response.getStatusLine().getStatusCode() != 401);
-        assertTrue(response.getStatusLine().getStatusCode() != 400);
+        assertTrue(response.getStatusLine().getStatusCode() != SC_UNAUTHORIZED);
+        assertTrue(response.getStatusLine().getStatusCode() != SC_BAD_REQUEST);
         try {
             HttpEntity entity2 = response.getEntity();
             // do something useful with the response body

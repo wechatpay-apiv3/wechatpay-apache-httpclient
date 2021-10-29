@@ -1,10 +1,11 @@
 package com.wechat.pay.contrib.apache.httpclient.auth;
 
-import static com.wechat.pay.contrib.apache.httpclient.Headers.REQUEST_ID;
-import static com.wechat.pay.contrib.apache.httpclient.Headers.WECHATPAY_NONCE;
-import static com.wechat.pay.contrib.apache.httpclient.Headers.WECHATPAY_SERIAL;
-import static com.wechat.pay.contrib.apache.httpclient.Headers.WECHATPAY_SIGNATURE;
-import static com.wechat.pay.contrib.apache.httpclient.Headers.WECHATPAY_TIMESTAMP;
+
+import static com.wechat.pay.contrib.apache.httpclient.constant.WechatPayHttpHeaders.REQUEST_ID;
+import static com.wechat.pay.contrib.apache.httpclient.constant.WechatPayHttpHeaders.WECHAT_PAY_NONCE;
+import static com.wechat.pay.contrib.apache.httpclient.constant.WechatPayHttpHeaders.WECHAT_PAY_SERIAL;
+import static com.wechat.pay.contrib.apache.httpclient.constant.WechatPayHttpHeaders.WECHAT_PAY_SIGNATURE;
+import static com.wechat.pay.contrib.apache.httpclient.constant.WechatPayHttpHeaders.WECHAT_PAY_TIMESTAMP;
 
 import com.wechat.pay.contrib.apache.httpclient.Validator;
 import java.io.IOException;
@@ -43,8 +44,8 @@ public class WechatPay2Validator implements Validator {
             validateParameters(response);
 
             String message = buildMessage(response);
-            String serial = response.getFirstHeader(WECHATPAY_SERIAL).getValue();
-            String signature = response.getFirstHeader(WECHATPAY_SIGNATURE).getValue();
+            String serial = response.getFirstHeader(WECHAT_PAY_SERIAL).getValue();
+            String signature = response.getFirstHeader(WECHAT_PAY_SIGNATURE).getValue();
 
             if (!verifier.verify(serial, message.getBytes(StandardCharsets.UTF_8), signature)) {
                 throw verifyFail("serial=[%s] message=[%s] sign=[%s], request-id=[%s]",
@@ -65,8 +66,8 @@ public class WechatPay2Validator implements Validator {
         }
         String requestId = firstHeader.getValue();
 
-        // NOTE: ensure HEADER_WECHATPAY_TIMESTAMP at last
-        String[] headers = {WECHATPAY_SERIAL, WECHATPAY_SIGNATURE, WECHATPAY_NONCE, WECHATPAY_TIMESTAMP};
+        // NOTE: ensure HEADER_WECHAT_PAY_TIMESTAMP at last
+        String[] headers = {WECHAT_PAY_SERIAL, WECHAT_PAY_SIGNATURE, WECHAT_PAY_NONCE, WECHAT_PAY_TIMESTAMP};
 
         Header header = null;
         for (String headerName : headers) {
@@ -90,8 +91,8 @@ public class WechatPay2Validator implements Validator {
     }
 
     protected final String buildMessage(CloseableHttpResponse response) throws IOException {
-        String timestamp = response.getFirstHeader(WECHATPAY_TIMESTAMP).getValue();
-        String nonce = response.getFirstHeader(WECHATPAY_NONCE).getValue();
+        String timestamp = response.getFirstHeader(WECHAT_PAY_TIMESTAMP).getValue();
+        String nonce = response.getFirstHeader(WECHAT_PAY_NONCE).getValue();
         String body = getResponseBody(response);
         return timestamp + "\n"
                 + nonce + "\n"
