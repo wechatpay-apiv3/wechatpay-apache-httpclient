@@ -22,9 +22,9 @@ import org.apache.http.impl.execchain.ClientExecChain;
  */
 public class SignatureExec implements ClientExecChain {
 
-    final ClientExecChain mainExec;
-    final Credentials credentials;
-    final Validator validator;
+    private final ClientExecChain mainExec;
+    private final Credentials credentials;
+    private final Validator validator;
 
     protected SignatureExec(Credentials credentials, Validator validator, ClientExecChain mainExec) {
         this.credentials = credentials;

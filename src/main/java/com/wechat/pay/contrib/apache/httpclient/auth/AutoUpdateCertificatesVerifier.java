@@ -36,7 +36,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     /**
      * 证书下载地址
      */
-    public static final String CERT_DOWNLOAD_PATH = "https://api.mch.weixin.qq.com/v3/certificates";
+    private static final String CERT_DOWNLOAD_PATH = "https://api.mch.weixin.qq.com/v3/certificates";
     private static final Logger log = LoggerFactory.getLogger(AutoUpdateCertificatesVerifier.class);
     /**
      * 证书更新间隔时间，单位为分钟

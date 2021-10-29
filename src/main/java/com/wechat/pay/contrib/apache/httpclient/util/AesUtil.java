@@ -13,10 +13,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class AesUtil {
 
-    public static final String TRANSFORMATION = "AES/GCM/NoPadding";
+    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
 
-    static final int KEY_LENGTH_BYTE = 32;
-    static final int TAG_LENGTH_BIT = 128;
+    private static final int KEY_LENGTH_BYTE = 32;
+    private static final int TAG_LENGTH_BIT = 128;
 
     private final byte[] aesKey;
 

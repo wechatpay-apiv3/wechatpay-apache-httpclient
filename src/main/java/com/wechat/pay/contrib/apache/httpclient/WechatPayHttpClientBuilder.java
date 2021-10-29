@@ -13,8 +13,8 @@ import org.apache.http.impl.execchain.ClientExecChain;
 
 public class WechatPayHttpClientBuilder extends HttpClientBuilder {
 
-    static final String os = System.getProperty("os.name") + "/" + System.getProperty("os.version");
-    static final String version = System.getProperty("java.version");
+    private static final String OS = System.getProperty("os.name") + "/" + System.getProperty("os.version");
+    private static final String VERSION = System.getProperty("java.version");
     private Credentials credentials;
     private Validator validator;
 
@@ -24,8 +24,8 @@ public class WechatPayHttpClientBuilder extends HttpClientBuilder {
         String userAgent = String.format(
                 "WechatPay-Apache-HttpClient/%s (%s) Java/%s",
                 getClass().getPackage().getImplementationVersion(),
-                os,
-                version == null ? "Unknown" : version);
+                OS,
+                VERSION == null ? "Unknown" : VERSION);
         setUserAgent(userAgent);
     }
 

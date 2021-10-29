@@ -13,7 +13,7 @@ import javax.crypto.NoSuchPaddingException;
 
 public class RsaCryptoUtil {
 
-    public static final String TRANSFORMATION = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
+    private static final String TRANSFORMATION = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
 
     public static String encryptOAEP(String message, X509Certificate certificate) throws IllegalBlockSizeException {
         try {
