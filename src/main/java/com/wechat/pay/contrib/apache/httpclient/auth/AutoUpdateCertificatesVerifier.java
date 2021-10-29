@@ -33,15 +33,21 @@ import org.slf4j.LoggerFactory;
  */
 public class AutoUpdateCertificatesVerifier implements Verifier {
 
-    //证书下载地址
+    /**
+     * 证书下载地址
+     */
     public static final String CERT_DOWNLOAD_PATH = "https://api.mch.weixin.qq.com/v3/certificates";
     private static final Logger log = LoggerFactory.getLogger(AutoUpdateCertificatesVerifier.class);
-    //证书更新间隔时间，单位为分钟
+    /**
+     * 证书更新间隔时间，单位为分钟
+     */
     protected final int minutesInterval;
     protected final Credentials credentials;
     protected final byte[] apiV3Key;
     protected final ReentrantLock lock = new ReentrantLock();
-    //上次更新时间
+    /**
+     * 上次更新时间
+     */
     protected volatile Long lastUpdate;
     protected CertificatesVerifier verifier;
 
