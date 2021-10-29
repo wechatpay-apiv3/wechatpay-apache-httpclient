@@ -10,65 +10,65 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 public class WechatPayUploadHttpPost extends HttpPost {
 
-  private String meta;
+    private String meta;
 
-  private WechatPayUploadHttpPost(URI uri, String meta) {
-    super(uri);
-    this.meta = meta;
-  }
-
-  public String getMeta() {
-    return meta;
-  }
-
-  public static class Builder {
-
-    private String fileName;
-    private String fileSha256;
-    private InputStream fileInputStream;
-    private ContentType fileContentType;
-    private final URI uri;
-
-    public Builder(URI uri) {
-      this.uri = uri;
+    private WechatPayUploadHttpPost(URI uri, String meta) {
+        super(uri);
+        this.meta = meta;
     }
 
-    public Builder withImage(String fileName, String fileSha256, InputStream inputStream) {
-      this.fileName = fileName;
-      this.fileSha256 = fileSha256;
-      this.fileInputStream = inputStream;
-
-      String mimeType = URLConnection.guessContentTypeFromName(fileName);
-      if (mimeType == null) {
-        // guess this is a video uploading
-        this.fileContentType = ContentType.APPLICATION_OCTET_STREAM;
-      } else {
-        this.fileContentType = ContentType.create(mimeType);
-      }
-      return this;
+    public String getMeta() {
+        return meta;
     }
 
-    public WechatPayUploadHttpPost build() {
-      if (fileName == null || fileSha256 == null || fileInputStream == null) {
-        throw new IllegalArgumentException("缺少待上传图片文件信息");
-      }
+    public static class Builder {
 
-      if (uri == null) {
-        throw new IllegalArgumentException("缺少上传图片接口URL");
-      }
+        private final URI uri;
+        private String fileName;
+        private String fileSha256;
+        private InputStream fileInputStream;
+        private ContentType fileContentType;
 
-      String meta = String.format("{\"filename\":\"%s\",\"sha256\":\"%s\"}", fileName, fileSha256);
-      WechatPayUploadHttpPost request = new WechatPayUploadHttpPost(uri, meta);
+        public Builder(URI uri) {
+            this.uri = uri;
+        }
 
-      MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
-      entityBuilder.setMode(HttpMultipartMode.RFC6532)
-              .addBinaryBody("file", fileInputStream, fileContentType, fileName)
-              .addTextBody("meta", meta, ContentType.APPLICATION_JSON);
+        public Builder withImage(String fileName, String fileSha256, InputStream inputStream) {
+            this.fileName = fileName;
+            this.fileSha256 = fileSha256;
+            this.fileInputStream = inputStream;
 
-      request.setEntity(entityBuilder.build());
-      request.addHeader(Headers.ACCEPT, Headers.ACCEPT_APPLICATION_JSON);
+            String mimeType = URLConnection.guessContentTypeFromName(fileName);
+            if (mimeType == null) {
+                // guess this is a video uploading
+                this.fileContentType = ContentType.APPLICATION_OCTET_STREAM;
+            } else {
+                this.fileContentType = ContentType.create(mimeType);
+            }
+            return this;
+        }
 
-      return request;
+        public WechatPayUploadHttpPost build() {
+            if (fileName == null || fileSha256 == null || fileInputStream == null) {
+                throw new IllegalArgumentException("缺少待上传图片文件信息");
+            }
+
+            if (uri == null) {
+                throw new IllegalArgumentException("缺少上传图片接口URL");
+            }
+
+            String meta = String.format("{\"filename\":\"%s\",\"sha256\":\"%s\"}", fileName, fileSha256);
+            WechatPayUploadHttpPost request = new WechatPayUploadHttpPost(uri, meta);
+
+            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+            entityBuilder.setMode(HttpMultipartMode.RFC6532)
+                    .addBinaryBody("file", fileInputStream, fileContentType, fileName)
+                    .addTextBody("meta", meta, ContentType.APPLICATION_JSON);
+
+            request.setEntity(entityBuilder.build());
+            request.addHeader(Headers.ACCEPT, Headers.ACCEPT_APPLICATION_JSON);
+
+            return request;
+        }
     }
-  }
 }

@@ -15,62 +15,63 @@ import org.apache.http.impl.execchain.ClientExecChain;
 
 public class SignatureExec implements ClientExecChain {
 
-  final ClientExecChain mainExec;
-  final Credentials credentials;
-  final Validator validator;
+    final ClientExecChain mainExec;
+    final Credentials credentials;
+    final Validator validator;
 
-  protected SignatureExec(Credentials credentials, Validator validator, ClientExecChain mainExec) {
-    this.credentials = credentials;
-    this.validator = validator;
-    this.mainExec = mainExec;
-  }
-
-  protected void convertToRepeatableResponseEntity(CloseableHttpResponse response) throws IOException {
-    HttpEntity entity = response.getEntity();
-    if (entity != null) {
-      response.setEntity(new BufferedHttpEntity(entity));
+    protected SignatureExec(Credentials credentials, Validator validator, ClientExecChain mainExec) {
+        this.credentials = credentials;
+        this.validator = validator;
+        this.mainExec = mainExec;
     }
-  }
 
-  protected void convertToRepeatableRequestEntity(HttpRequestWrapper request) throws IOException {
-    if (request instanceof HttpEntityEnclosingRequest) {
-      HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-      if (entity != null) {
-        ((HttpEntityEnclosingRequest) request).setEntity(new BufferedHttpEntity(entity));
-      }
+    protected void convertToRepeatableResponseEntity(CloseableHttpResponse response) throws IOException {
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            response.setEntity(new BufferedHttpEntity(entity));
+        }
     }
-  }
 
-  @Override
-  public CloseableHttpResponse execute(HttpRoute route, HttpRequestWrapper request, HttpClientContext context,
-                                       HttpExecutionAware execAware) throws IOException, HttpException {
-    if (request.getTarget().getHostName().endsWith(".mch.weixin.qq.com")) {
-      return executeWithSignature(route, request, context, execAware);
-    } else {
-      return mainExec.execute(route, request, context, execAware);
+    protected void convertToRepeatableRequestEntity(HttpRequestWrapper request) throws IOException {
+        if (request instanceof HttpEntityEnclosingRequest) {
+            HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+            if (entity != null) {
+                ((HttpEntityEnclosingRequest) request).setEntity(new BufferedHttpEntity(entity));
+            }
+        }
     }
-  }
 
-  protected CloseableHttpResponse executeWithSignature(HttpRoute route, HttpRequestWrapper request, HttpClientContext context,
-                                                       HttpExecutionAware execAware) throws IOException, HttpException {
-    // 上传类不需要消耗两次故不做转换
-    if (!(request.getOriginal() instanceof WechatPayUploadHttpPost)) {
-      convertToRepeatableRequestEntity(request);
+    @Override
+    public CloseableHttpResponse execute(HttpRoute route, HttpRequestWrapper request, HttpClientContext context,
+            HttpExecutionAware execAware) throws IOException, HttpException {
+        if (request.getTarget().getHostName().endsWith(".mch.weixin.qq.com")) {
+            return executeWithSignature(route, request, context, execAware);
+        } else {
+            return mainExec.execute(route, request, context, execAware);
+        }
     }
-    // 添加认证信息
-    request.addHeader(Headers.AUTHORIZATION, credentials.getSchema() + " " + credentials.getToken(request));
 
-    // 执行
-    CloseableHttpResponse response = mainExec.execute(route, request, context, execAware);
+    protected CloseableHttpResponse executeWithSignature(HttpRoute route, HttpRequestWrapper request,
+            HttpClientContext context,
+            HttpExecutionAware execAware) throws IOException, HttpException {
+        // 上传类不需要消耗两次故不做转换
+        if (!(request.getOriginal() instanceof WechatPayUploadHttpPost)) {
+            convertToRepeatableRequestEntity(request);
+        }
+        // 添加认证信息
+        request.addHeader(Headers.AUTHORIZATION, credentials.getSchema() + " " + credentials.getToken(request));
 
-    // 对成功应答验签
-    StatusLine statusLine = response.getStatusLine();
-    if (statusLine.getStatusCode() >= 200 && statusLine.getStatusCode() < 300) {
-      convertToRepeatableResponseEntity(response);
-      if (!validator.validate(response)) {
-        throw new HttpException("应答的微信支付签名验证失败");
-      }
+        // 执行
+        CloseableHttpResponse response = mainExec.execute(route, request, context, execAware);
+
+        // 对成功应答验签
+        StatusLine statusLine = response.getStatusLine();
+        if (statusLine.getStatusCode() >= 200 && statusLine.getStatusCode() < 300) {
+            convertToRepeatableResponseEntity(response);
+            if (!validator.validate(response)) {
+                throw new HttpException("应答的微信支付签名验证失败");
+            }
+        }
+        return response;
     }
-    return response;
-  }
 }

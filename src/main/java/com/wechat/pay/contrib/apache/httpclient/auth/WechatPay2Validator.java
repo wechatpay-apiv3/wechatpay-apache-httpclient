@@ -1,5 +1,12 @@
 package com.wechat.pay.contrib.apache.httpclient.auth;
 
+import static com.wechat.pay.contrib.apache.httpclient.Headers.REQUEST_ID;
+import static com.wechat.pay.contrib.apache.httpclient.Headers.WECHATPAY_NONCE;
+import static com.wechat.pay.contrib.apache.httpclient.Headers.WECHATPAY_SERIAL;
+import static com.wechat.pay.contrib.apache.httpclient.Headers.WECHATPAY_SIGNATURE;
+import static com.wechat.pay.contrib.apache.httpclient.Headers.WECHATPAY_TIMESTAMP;
+
+import com.wechat.pay.contrib.apache.httpclient.Validator;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
@@ -9,94 +16,91 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.wechat.pay.contrib.apache.httpclient.Validator;
-
-import static com.wechat.pay.contrib.apache.httpclient.Headers.*;
 
 public class WechatPay2Validator implements Validator {
 
-  protected static final Logger log = LoggerFactory.getLogger(WechatPay2Validator.class);
+    protected static final Logger log = LoggerFactory.getLogger(WechatPay2Validator.class);
 
-  protected Verifier verifier;
+    protected Verifier verifier;
 
-  public WechatPay2Validator(Verifier verifier) {
-    this.verifier = verifier;
-  }
-
-  static IllegalArgumentException parameterError(String message, Object... args) {
-    message = String.format(message, args);
-    return new IllegalArgumentException("parameter error: " + message);
-  }
-
-  static IllegalArgumentException verifyFail(String message, Object... args) {
-    message = String.format(message, args);
-    return new IllegalArgumentException("signature verify fail: " + message);
-  }
-
-  @Override
-  public final boolean validate(CloseableHttpResponse response) throws IOException {
-    try {
-      validateParameters(response);
-
-      String message = buildMessage(response);
-      String serial = response.getFirstHeader(WECHATPAY_SERIAL).getValue();
-      String signature = response.getFirstHeader(WECHATPAY_SIGNATURE).getValue();
-
-      if (!verifier.verify(serial, message.getBytes(StandardCharsets.UTF_8), signature)) {
-        throw verifyFail("serial=[%s] message=[%s] sign=[%s], request-id=[%s]",
-                serial, message, signature, response.getFirstHeader(REQUEST_ID).getValue());
-      }
-    } catch (IllegalArgumentException e) {
-      log.warn(e.getMessage());
-      return false;
+    public WechatPay2Validator(Verifier verifier) {
+        this.verifier = verifier;
     }
 
-    return true;
-  }
-
-  protected final void validateParameters(CloseableHttpResponse response) {
-    Header firstHeader = response.getFirstHeader(REQUEST_ID);
-    if (firstHeader == null) {
-      throw parameterError("empty " + REQUEST_ID);
-    }
-    String requestId = firstHeader.getValue();
-
-    // NOTE: ensure HEADER_WECHATPAY_TIMESTAMP at last
-    String[] headers = { WECHATPAY_SERIAL, WECHATPAY_SIGNATURE, WECHATPAY_NONCE, WECHATPAY_TIMESTAMP };
-
-    Header header = null;
-    for (String headerName : headers) {
-      header = response.getFirstHeader(headerName);
-      if (header == null) {
-        throw parameterError("empty [%s], request-id=[%s]", headerName, requestId);
-      }
+    static IllegalArgumentException parameterError(String message, Object... args) {
+        message = String.format(message, args);
+        return new IllegalArgumentException("parameter error: " + message);
     }
 
-    String timestampStr = header.getValue();
-    try {
-      long timestampInSecond = Long.parseLong(timestampStr);
-
-      // 拒绝5分钟之外的应答
-      if (System.currentTimeMillis() / 1000L - timestampInSecond > 60 * 5) {
-        throw parameterError("timestamp=[%s] expires, request-id=[%s]", timestampStr, requestId);
-      }
-    } catch (DateTimeException | NumberFormatException e) {
-      throw parameterError("invalid timestamp=[%s], request-id=[%s]", timestampStr, requestId);
+    static IllegalArgumentException verifyFail(String message, Object... args) {
+        message = String.format(message, args);
+        return new IllegalArgumentException("signature verify fail: " + message);
     }
-  }
 
-  protected final String buildMessage(CloseableHttpResponse response) throws IOException {
-    String timestamp = response.getFirstHeader(WECHATPAY_TIMESTAMP).getValue();
-    String nonce = response.getFirstHeader(WECHATPAY_NONCE).getValue();
-    String body = getResponseBody(response);
-    return timestamp + "\n"
-            + nonce + "\n"
-            + body + "\n";
-  }
+    @Override
+    public final boolean validate(CloseableHttpResponse response) throws IOException {
+        try {
+            validateParameters(response);
 
-  protected final String getResponseBody(CloseableHttpResponse response) throws IOException {
-    HttpEntity entity = response.getEntity();
-    return (entity != null && entity.isRepeatable()) ? EntityUtils.toString(entity) : "";
-  }
+            String message = buildMessage(response);
+            String serial = response.getFirstHeader(WECHATPAY_SERIAL).getValue();
+            String signature = response.getFirstHeader(WECHATPAY_SIGNATURE).getValue();
+
+            if (!verifier.verify(serial, message.getBytes(StandardCharsets.UTF_8), signature)) {
+                throw verifyFail("serial=[%s] message=[%s] sign=[%s], request-id=[%s]",
+                        serial, message, signature, response.getFirstHeader(REQUEST_ID).getValue());
+            }
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    protected final void validateParameters(CloseableHttpResponse response) {
+        Header firstHeader = response.getFirstHeader(REQUEST_ID);
+        if (firstHeader == null) {
+            throw parameterError("empty " + REQUEST_ID);
+        }
+        String requestId = firstHeader.getValue();
+
+        // NOTE: ensure HEADER_WECHATPAY_TIMESTAMP at last
+        String[] headers = {WECHATPAY_SERIAL, WECHATPAY_SIGNATURE, WECHATPAY_NONCE, WECHATPAY_TIMESTAMP};
+
+        Header header = null;
+        for (String headerName : headers) {
+            header = response.getFirstHeader(headerName);
+            if (header == null) {
+                throw parameterError("empty [%s], request-id=[%s]", headerName, requestId);
+            }
+        }
+
+        String timestampStr = header.getValue();
+        try {
+            long timestampInSecond = Long.parseLong(timestampStr);
+
+            // 拒绝5分钟之外的应答
+            if (System.currentTimeMillis() / 1000L - timestampInSecond > 60 * 5) {
+                throw parameterError("timestamp=[%s] expires, request-id=[%s]", timestampStr, requestId);
+            }
+        } catch (DateTimeException | NumberFormatException e) {
+            throw parameterError("invalid timestamp=[%s], request-id=[%s]", timestampStr, requestId);
+        }
+    }
+
+    protected final String buildMessage(CloseableHttpResponse response) throws IOException {
+        String timestamp = response.getFirstHeader(WECHATPAY_TIMESTAMP).getValue();
+        String nonce = response.getFirstHeader(WECHATPAY_NONCE).getValue();
+        String body = getResponseBody(response);
+        return timestamp + "\n"
+                + nonce + "\n"
+                + body + "\n";
+    }
+
+    protected final String getResponseBody(CloseableHttpResponse response) throws IOException {
+        HttpEntity entity = response.getEntity();
+        return (entity != null && entity.isRepeatable()) ? EntityUtils.toString(entity) : "";
+    }
 
 }

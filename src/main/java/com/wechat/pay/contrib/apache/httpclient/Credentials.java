@@ -5,8 +5,8 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 
 public interface Credentials {
 
-  String getSchema();
+    String getSchema();
 
-  String getToken(HttpRequestWrapper request) throws IOException;
+    String getToken(HttpRequestWrapper request) throws IOException;
 
 }
