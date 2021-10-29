@@ -6,8 +6,8 @@ public interface Signer {
 
     class SignatureResult {
 
-        protected String sign;
-        protected String certificateSerialNumber;
+        protected final String sign;
+        protected final String certificateSerialNumber;
 
         public SignatureResult(String sign, String serialNumber) {
             this.sign = sign;

@@ -9,8 +9,8 @@ import java.util.Base64;
 
 public class PrivateKeySigner implements Signer {
 
-    protected String certificateSerialNumber;
-    protected PrivateKey privateKey;
+    protected final String certificateSerialNumber;
+    protected final PrivateKey privateKey;
 
     public PrivateKeySigner(String serialNumber, PrivateKey privateKey) {
         this.certificateSerialNumber = serialNumber;

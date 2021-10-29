@@ -18,8 +18,8 @@ public class WechatPay2Credentials implements Credentials {
 
     protected static final String SYMBOLS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     protected static final SecureRandom RANDOM = new SecureRandom();
-    protected String merchantId;
-    protected Signer signer;
+    protected final String merchantId;
+    protected final Signer signer;
 
     public WechatPay2Credentials(String merchantId, Signer signer) {
         this.merchantId = merchantId;

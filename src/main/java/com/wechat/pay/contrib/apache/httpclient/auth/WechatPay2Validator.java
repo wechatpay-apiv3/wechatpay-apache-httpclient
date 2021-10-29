@@ -22,7 +22,7 @@ public class WechatPay2Validator implements Validator {
 
     protected static final Logger log = LoggerFactory.getLogger(WechatPay2Validator.class);
 
-    protected Verifier verifier;
+    protected final Verifier verifier;
 
     public WechatPay2Validator(Verifier verifier) {
         this.verifier = verifier;
