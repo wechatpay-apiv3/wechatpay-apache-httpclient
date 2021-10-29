@@ -11,6 +11,8 @@ import com.wechat.pay.contrib.apache.httpclient.Validator;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
+import java.time.Duration;
+import java.time.Instant;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -21,7 +23,10 @@ import org.slf4j.LoggerFactory;
 public class WechatPay2Validator implements Validator {
 
     protected static final Logger log = LoggerFactory.getLogger(WechatPay2Validator.class);
-
+    /**
+     * 应答超时时间，单位为分钟
+     */
+    protected static final long RESPONSE_EXPIRED_MINUTES = 5;
     protected final Verifier verifier;
 
     public WechatPay2Validator(Verifier verifier) {
@@ -79,10 +84,9 @@ public class WechatPay2Validator implements Validator {
 
         String timestampStr = header.getValue();
         try {
-            long timestampInSecond = Long.parseLong(timestampStr);
-
-            // 拒绝5分钟之外的应答
-            if (System.currentTimeMillis() / 1000L - timestampInSecond > 60 * 5) {
+            Instant responseTime = Instant.ofEpochSecond(Long.parseLong(timestampStr));
+            // 拒绝过期应答
+            if (Duration.between(responseTime, Instant.now()).abs().toMinutes() >= RESPONSE_EXPIRED_MINUTES) {
                 throw parameterError("timestamp=[%s] expires, request-id=[%s]", timestampStr, requestId);
             }
         } catch (DateTimeException | NumberFormatException e) {

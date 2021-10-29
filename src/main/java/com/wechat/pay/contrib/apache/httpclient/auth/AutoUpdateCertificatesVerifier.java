@@ -17,6 +17,8 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -41,28 +43,28 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     /**
      * 证书更新间隔时间，单位为分钟
      */
-    protected final int minutesInterval;
+    protected final long minutesInterval;
     protected final Credentials credentials;
     protected final byte[] apiV3Key;
     protected final ReentrantLock lock = new ReentrantLock();
     /**
      * 上次更新时间
      */
-    protected volatile Long lastUpdate;
+    protected volatile Instant lastUpdateTime;
     protected CertificatesVerifier verifier;
 
     public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key) {
-        this(credentials, apiV3Key, (int) TimeUnit.HOURS.toMinutes(1));
+        this(credentials, apiV3Key, TimeUnit.HOURS.toMinutes(1));
     }
 
-    public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, int minutesInterval) {
+    public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, long minutesInterval) {
         this.credentials = credentials;
         this.apiV3Key = apiV3Key;
         this.minutesInterval = minutesInterval;
         //构造时更新证书
         try {
             autoUpdateCert();
-            lastUpdate = System.currentTimeMillis();
+            lastUpdateTime = Instant.now();
         } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
@@ -75,12 +77,13 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
     @Override
     public boolean verify(String serialNumber, byte[] message, String signature) {
-        if (lastUpdate == null || System.currentTimeMillis() - lastUpdate >= minutesInterval * 1000L * 60) {
+        if (lastUpdateTime == null
+                || Duration.between(lastUpdateTime, Instant.now()).toMinutes() >= minutesInterval) {
             if (lock.tryLock()) {
                 try {
                     autoUpdateCert();
                     //更新时间
-                    lastUpdate = System.currentTimeMillis();
+                    lastUpdateTime = Instant.now();
                 } catch (GeneralSecurityException | IOException e) {
                     log.warn("Auto update cert failed: ", e);
                 } finally {
