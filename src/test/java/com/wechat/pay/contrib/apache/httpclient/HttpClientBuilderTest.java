@@ -29,19 +29,19 @@ import org.junit.Test;
 
 public class HttpClientBuilderTest {
 
-    private static String mchId = "1900009191"; // 商户号
-    private static String mchSerialNo = "1DDE55AD98ED71D6EDD4A4A16996DE7B47773A8C"; // 商户证书序列号
-    private static String requestBody = "{\n"
+    private static final String mchId = "1900009191"; // 商户号
+    private static final String mchSerialNo = "1DDE55AD98ED71D6EDD4A4A16996DE7B47773A8C"; // 商户证书序列号
+    private static final String requestBody = "{\n"
             + "    \"stock_id\": \"9433645\",\n"
             + "    \"stock_creator_mchid\": \"1900006511\",\n"
             + "    \"out_request_no\": \"20190522_001中文11\",\n"
             + "    \"appid\": \"wxab8acb865bb1637e\"\n"
             + "}";
     // 你的商户私钥
-    private static String privateKey = "-----BEGIN PRIVATE KEY-----\n"
+    private static final String privateKey = "-----BEGIN PRIVATE KEY-----\n"
             + "-----END PRIVATE KEY-----";
     // 你的微信支付平台证书
-    private static String certificate = "-----BEGIN CERTIFICATE-----\n"
+    private static final String certificate = "-----BEGIN CERTIFICATE-----\n"
             + "-----END CERTIFICATE-----";
     private CloseableHttpClient httpClient;
 

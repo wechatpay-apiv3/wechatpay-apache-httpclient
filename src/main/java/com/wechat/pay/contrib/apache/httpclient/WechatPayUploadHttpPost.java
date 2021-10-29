@@ -10,7 +10,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 public class WechatPayUploadHttpPost extends HttpPost {
 
-    private String meta;
+    private final String meta;
 
     private WechatPayUploadHttpPost(URI uri, String meta) {
         super(uri);

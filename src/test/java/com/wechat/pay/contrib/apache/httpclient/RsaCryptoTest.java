@@ -24,11 +24,11 @@ import org.junit.Test;
 
 public class RsaCryptoTest {
 
-    private static String mchId = ""; // 商户号
-    private static String mchSerialNo = ""; // 商户证书序列号
-    private static String apiV3Key = ""; // api密钥
+    private static final String mchId = ""; // 商户号
+    private static final String mchSerialNo = ""; // 商户证书序列号
+    private static final String apiV3Key = ""; // api密钥
     // 你的商户私钥
-    private static String privateKey = "-----BEGIN PRIVATE KEY-----\n"
+    private static final String privateKey = "-----BEGIN PRIVATE KEY-----\n"
             + "-----END PRIVATE KEY-----\n";
 
     private CloseableHttpClient httpClient;
