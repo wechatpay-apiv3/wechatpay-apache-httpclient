@@ -1,6 +1,8 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
+import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -71,7 +73,7 @@ public class AutoUpdateVerifierTest {
     public void getCertificateTest() throws Exception {
         URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/certificates");
         HttpGet httpGet = new HttpGet(uriBuilder.build());
-        httpGet.addHeader("Accept", "application/json");
+        httpGet.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
         CloseableHttpResponse response = httpClient.execute(httpGet);
         assertEquals(SC_OK, response.getStatusLine().getStatusCode());
         try {
