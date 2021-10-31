@@ -18,10 +18,11 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.execchain.ClientExecChain;
 
 /**
- * @author bruse
+ * @author xy-peng
  */
 public class SignatureExec implements ClientExecChain {
 
+    private static final String WECHAT_PAY_HOST_NAME_SUFFIX = ".mch.weixin.qq.com";
     private final ClientExecChain mainExec;
     private final Credentials credentials;
     private final Validator validator;
@@ -51,7 +52,7 @@ public class SignatureExec implements ClientExecChain {
     @Override
     public CloseableHttpResponse execute(HttpRoute route, HttpRequestWrapper request, HttpClientContext context,
             HttpExecutionAware execAware) throws IOException, HttpException {
-        if (request.getTarget().getHostName().endsWith(".mch.weixin.qq.com")) {
+        if (request.getTarget().getHostName().endsWith(WECHAT_PAY_HOST_NAME_SUFFIX)) {
             return executeWithSignature(route, request, context, execAware);
         } else {
             return mainExec.execute(route, request, context, execAware);
