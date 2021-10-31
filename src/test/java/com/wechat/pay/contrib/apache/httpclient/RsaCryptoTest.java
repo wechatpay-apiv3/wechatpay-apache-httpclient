@@ -30,10 +30,10 @@ public class RsaCryptoTest {
 
     private static final String mchId = ""; // 商户号
     private static final String mchSerialNo = ""; // 商户证书序列号
-    private static final String apiV3Key = ""; // api密钥
-    // 你的商户私钥
+    private static final String apiV3Key = ""; // API V3密钥
     private static final String privateKey = "-----BEGIN PRIVATE KEY-----\n"
-            + "-----END PRIVATE KEY-----\n";
+            + "-----END PRIVATE KEY-----\n"; // 商户API V3私钥
+    private static final String wechatPaySerial = ""; // 平台证书序列号
 
     private CloseableHttpClient httpClient;
     private AutoUpdateCertificatesVerifier verifier;
@@ -86,7 +86,7 @@ public class RsaCryptoTest {
         StringEntity reqEntity = new StringEntity(data, APPLICATION_JSON);
         httpPost.setEntity(reqEntity);
         httpPost.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
-        httpPost.addHeader(WECHAT_PAY_SERIAL, "5157F09EFDC096DE15EBE81A47057A7232F1B8E1");
+        httpPost.addHeader(WECHAT_PAY_SERIAL, wechatPaySerial);
 
         CloseableHttpResponse response = httpClient.execute(httpPost);
         assertTrue(response.getStatusLine().getStatusCode() != SC_UNAUTHORIZED);
