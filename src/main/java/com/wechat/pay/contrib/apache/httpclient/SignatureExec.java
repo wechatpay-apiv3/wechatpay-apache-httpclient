@@ -59,7 +59,7 @@ public class SignatureExec implements ClientExecChain {
         }
     }
 
-    protected CloseableHttpResponse executeWithSignature(HttpRoute route, HttpRequestWrapper request,
+    private CloseableHttpResponse executeWithSignature(HttpRoute route, HttpRequestWrapper request,
             HttpClientContext context,
             HttpExecutionAware execAware) throws IOException, HttpException {
         // 上传类不需要消耗两次故不做转换

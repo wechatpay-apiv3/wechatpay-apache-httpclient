@@ -33,12 +33,12 @@ public class WechatPay2Validator implements Validator {
         this.verifier = verifier;
     }
 
-    static IllegalArgumentException parameterError(String message, Object... args) {
+    protected static IllegalArgumentException parameterError(String message, Object... args) {
         message = String.format(message, args);
         return new IllegalArgumentException("parameter error: " + message);
     }
 
-    static IllegalArgumentException verifyFail(String message, Object... args) {
+    protected static IllegalArgumentException verifyFail(String message, Object... args) {
         message = String.format(message, args);
         return new IllegalArgumentException("signature verify fail: " + message);
     }
