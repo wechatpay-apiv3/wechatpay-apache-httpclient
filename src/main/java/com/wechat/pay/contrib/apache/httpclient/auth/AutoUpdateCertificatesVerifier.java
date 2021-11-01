@@ -101,7 +101,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
                 .build()) {
 
             HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);
-            httpGet.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
+            httpGet.addHeader(ACCEPT, APPLICATION_JSON.toString());
 
             try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
                 int statusCode = response.getStatusLine().getStatusCode();

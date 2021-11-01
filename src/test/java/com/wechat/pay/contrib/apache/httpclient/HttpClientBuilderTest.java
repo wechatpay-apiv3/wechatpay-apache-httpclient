@@ -116,7 +116,7 @@ public class HttpClientBuilderTest {
         if (entity != null && request instanceof HttpPost) {
             ((HttpPost) request).setEntity(entity);
         }
-        request.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
+        request.addHeader(ACCEPT, APPLICATION_JSON.toString());
 
         try (CloseableHttpResponse response = httpClient.execute(request)) {
             responseCallback.accept(response);

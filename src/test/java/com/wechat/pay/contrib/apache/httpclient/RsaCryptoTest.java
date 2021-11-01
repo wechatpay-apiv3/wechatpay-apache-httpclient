@@ -85,7 +85,7 @@ public class RsaCryptoTest {
                 + "}";
         StringEntity reqEntity = new StringEntity(data, APPLICATION_JSON);
         httpPost.setEntity(reqEntity);
-        httpPost.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
+        httpPost.addHeader(ACCEPT, APPLICATION_JSON.toString());
         httpPost.addHeader(WECHAT_PAY_SERIAL, wechatPaySerial);
 
         CloseableHttpResponse response = httpClient.execute(httpPost);

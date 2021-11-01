@@ -73,7 +73,7 @@ public class AutoUpdateVerifierTest {
     public void getCertificateTest() throws Exception {
         URIBuilder uriBuilder = new URIBuilder("https://api.mch.weixin.qq.com/v3/certificates");
         HttpGet httpGet = new HttpGet(uriBuilder.build());
-        httpGet.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
+        httpGet.addHeader(ACCEPT, APPLICATION_JSON.toString());
         CloseableHttpResponse response = httpClient.execute(httpGet);
         assertEquals(SC_OK, response.getStatusLine().getStatusCode());
         try {

@@ -69,7 +69,7 @@ public class WechatPayUploadHttpPost extends HttpPost {
                     .addTextBody("meta", meta, APPLICATION_JSON);
 
             request.setEntity(entityBuilder.build());
-            request.addHeader(ACCEPT, APPLICATION_JSON.getMimeType());
+            request.addHeader(ACCEPT, APPLICATION_JSON.toString());
 
             return request;
         }
