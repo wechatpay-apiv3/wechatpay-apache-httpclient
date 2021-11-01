@@ -40,7 +40,7 @@ public class AutoUpdateVerifierTest {
     private static final String signature = "";
     private static final String mchId = ""; // 商户号
     private static final String mchSerialNo = ""; // 商户证书序列号
-    private static final String apiV3Key = ""; // api密钥
+    private static final String apiV3Key = ""; // API V3密钥
     private CloseableHttpClient httpClient;
     private AutoUpdateCertificatesVerifier verifier;
 
