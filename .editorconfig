@@ -15,6 +15,7 @@ continuation_indent_size = 4
 indent_size = 4
 max_line_length = 120
 tab_width = 4
+continuation_indent_size = 8
 
 [{*.gant,*.gradle,*.groovy,*.gson,*.gy}]
 indent_size = 4
