@@ -125,7 +125,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
      */
     protected List<X509Certificate> deserializeToCerts(byte[] apiV3Key, String body)
             throws GeneralSecurityException, IOException {
-        AesUtil aes = new AesUtil(apiV3Key);
+        AesUtil aesUtil = new AesUtil(apiV3Key);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode dataNode = mapper.readTree(body).get("data");
         List<X509Certificate> newCertList = new ArrayList<>();
@@ -133,7 +133,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
             for (int i = 0, count = dataNode.size(); i < count; i++) {
                 JsonNode node = dataNode.get(i).get("encrypt_certificate");
                 //解密
-                String cert = aes.decryptToString(
+                String cert = aesUtil.decryptToString(
                         node.get("associated_data").toString().replace("\"", "")
                                 .getBytes(StandardCharsets.UTF_8),
                         node.get("nonce").toString().replace("\"", "")

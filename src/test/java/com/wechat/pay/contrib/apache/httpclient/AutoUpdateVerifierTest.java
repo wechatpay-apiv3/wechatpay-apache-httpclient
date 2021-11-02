@@ -102,10 +102,10 @@ public class AutoUpdateVerifierTest {
 
                 try (CloseableHttpResponse response = httpClient.execute(request)) {
                     assertEquals(SC_OK, response.getStatusLine().getStatusCode());
-                    HttpEntity entity1 = response.getEntity();
+                    HttpEntity entity = response.getEntity();
                     // do something useful with the response body
                     // and ensure it is fully consumed
-                    String s = EntityUtils.toString(entity1);
+                    String s = EntityUtils.toString(entity);
                     System.out.println(s);
                 }
             }

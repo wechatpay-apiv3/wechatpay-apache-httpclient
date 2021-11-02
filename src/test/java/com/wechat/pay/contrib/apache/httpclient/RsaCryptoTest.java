@@ -92,10 +92,10 @@ public class RsaCryptoTest {
         assertTrue(response.getStatusLine().getStatusCode() != SC_UNAUTHORIZED);
         assertTrue(response.getStatusLine().getStatusCode() != SC_BAD_REQUEST);
         try {
-            HttpEntity entity2 = response.getEntity();
+            HttpEntity entity = response.getEntity();
             // do something useful with the response body
             // and ensure it is fully consumed
-            EntityUtils.consume(entity2);
+            EntityUtils.consume(entity);
         } finally {
             response.close();
         }
