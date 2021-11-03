@@ -1,4 +1,4 @@
-# wechatpay-apache-httpclient 
+# wechatpay-apache-httpclient
 
 ## 概览
 
@@ -54,7 +54,7 @@ import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 //...
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
-        .withWechatpay(wechatpayCertificates);
+        .withWechatPay(wechatpayCertificates);
 // ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
 
 // 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签
@@ -113,7 +113,7 @@ rootNode.putObject("payer")
         .put("openid", "oUpF8uMuAJO_M2pxb1Q9zNjWeS6o");
 
 objectMapper.writeValue(bos, rootNode);
-    
+
 httpPost.setEntity(new StringEntity(bos.toString("UTF-8"), "UTF-8"));
 CloseableHttpResponse response = httpClient.execute(httpPost);
 
@@ -148,7 +148,7 @@ ObjectNode rootNode = objectMapper.createObjectNode();
 rootNode.put("mchid","1900009191");
 
 objectMapper.writeValue(bos, rootNode);
-    
+
 httpPost.setEntity(new StringEntity(bos.toString("UTF-8"), "UTF-8"));
 CloseableHttpResponse response = httpClient.execute(httpPost);
 
@@ -173,7 +173,7 @@ Credentials credentials = new WechatPay2Credentials(merchantId, new Signer() {
 });
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withCredentials(credentials)
-        .withWechatpay(wechatpayCertificates);
+        .withWechatPay(wechatpayCertificates);
 ```
 
 ## 自动更新证书功能
@@ -250,7 +250,7 @@ String filePath = "/your/home/hellokitty.png";
 URI uri = new URI("https://api.mch.weixin.qq.com/v3/merchant/media/upload");
 File file = new File(filePath);
 
-try (FileInputStream ins1 = new FileInputStream(file)) { 
+try (FileInputStream ins1 = new FileInputStream(file)) {
   String sha256 = DigestUtils.sha256Hex(ins1);
   try (InputStream ins2 = new FileInputStream(file)) {
     HttpPost request = new WechatPayUploadHttpPost.Builder(uri)
@@ -261,7 +261,7 @@ try (FileInputStream ins1 = new FileInputStream(file)) {
 }
 ```
 
-[AutoUpdateVerifierTest.uploadImageTest](/src/test/java/com/wechat/pay/contrib/apache/httpclient/AutoUpdateVerifierTest.java#L86)是一个更完整的示例。
+[AutoUpdateVerifierTest.uploadImageTest](/src/test/java/com/wechat/pay/contrib/apache/httpclient/AutoUpdateVerifierTest.java#90)是一个更完整的示例。
 
 ## 常见问题
 
@@ -281,7 +281,7 @@ PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
 
 ### 如何下载平台证书？
 
-使用`WechatPayHttpClientBuilder`需要调用`withWechatpay`设置[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu)，而平台证书又只能通过调用[获取平台证书接口](https://wechatpay-api.gitbook.io/wechatpay-api-v3/jie-kou-wen-dang/ping-tai-zheng-shu#huo-qu-ping-tai-zheng-shu-lie-biao)下载。为了解开"死循环"，你可以在第一次下载平台证书时，按照下述方法临时"跳过”应答签名的验证。
+使用`WechatPayHttpClientBuilder`需要调用`withWechatPay`设置[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu)，而平台证书又只能通过调用[获取平台证书接口](https://wechatpay-api.gitbook.io/wechatpay-api-v3/jie-kou-wen-dang/ping-tai-zheng-shu#huo-qu-ping-tai-zheng-shu-lie-biao)下载。为了解开"死循环"，你可以在第一次下载平台证书时，按照下述方法临时"跳过”应答签名的验证。
 
 ```java
 CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
