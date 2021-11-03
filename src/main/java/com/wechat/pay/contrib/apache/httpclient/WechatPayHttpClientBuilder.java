@@ -11,6 +11,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.execchain.ClientExecChain;
 
+/**
+ * @author xy-peng
+ */
 public class WechatPayHttpClientBuilder extends HttpClientBuilder {
 
     private static final String OS = System.getProperty("os.name") + "/" + System.getProperty("os.version");

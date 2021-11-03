@@ -20,6 +20,9 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author xy-peng
+ */
 public class WechatPay2Validator implements Validator {
 
     protected static final Logger log = LoggerFactory.getLogger(WechatPay2Validator.class);

@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 在原有CertificatesVerifier基础上，增加自动更新证书功能
+ *
+ * @author xy-peng
  */
 public class AutoUpdateCertificatesVerifier implements Verifier {
 

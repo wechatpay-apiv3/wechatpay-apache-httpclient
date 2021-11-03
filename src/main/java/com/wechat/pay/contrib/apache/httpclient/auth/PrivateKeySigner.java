@@ -7,6 +7,9 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.util.Base64;
 
+/**
+ * @author xy-peng
+ */
 public class PrivateKeySigner implements Signer {
 
     protected final String certificateSerialNumber;

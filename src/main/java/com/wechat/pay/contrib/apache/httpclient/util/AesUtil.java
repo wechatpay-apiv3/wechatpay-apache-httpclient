@@ -11,6 +11,9 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+/**
+ * @author xy-peng
+ */
 public class AesUtil {
 
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";

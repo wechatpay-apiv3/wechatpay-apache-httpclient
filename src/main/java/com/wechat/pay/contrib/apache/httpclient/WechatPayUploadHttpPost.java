@@ -11,6 +11,9 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
+/**
+ * @author xy-peng
+ */
 public class WechatPayUploadHttpPost extends HttpPost {
 
     private final String meta;

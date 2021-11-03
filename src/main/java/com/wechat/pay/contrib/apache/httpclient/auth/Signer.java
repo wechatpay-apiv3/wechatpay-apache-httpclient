@@ -1,5 +1,8 @@
 package com.wechat.pay.contrib.apache.httpclient.auth;
 
+/**
+ * @author xy-peng
+ */
 public interface Signer {
 
     SignatureResult sign(byte[] message);
