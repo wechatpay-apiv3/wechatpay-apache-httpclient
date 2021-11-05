@@ -61,4 +61,13 @@ public class CertificatesVerifier implements Verifier {
         throw new NoSuchElementException("没有有效的微信支付平台证书");
     }
 
+    public boolean existCertificate(String serialNumber) {
+        boolean exist = false;
+        for (X509Certificate x509Cert : certificates.values()) {
+            if (x509Cert.getSerialNumber().toString().equals(serialNumber)) {
+                exist = true;
+            }
+        }
+        return !exist;
+    }
 }

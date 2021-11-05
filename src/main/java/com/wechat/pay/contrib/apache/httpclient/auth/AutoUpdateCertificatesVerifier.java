@@ -65,7 +65,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         this.minutesInterval = minutesInterval;
         //构造时更新证书
         try {
-            autoUpdateCert();
+            autoUpdateCert("");
             lastUpdateTime = Instant.now();
         } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException(e);
@@ -79,11 +79,10 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
     @Override
     public boolean verify(String serialNumber, byte[] message, String signature) {
-        if (lastUpdateTime == null
-                || Duration.between(lastUpdateTime, Instant.now()).toMinutes() >= minutesInterval) {
+        if (needUpdateCert(serialNumber)) {
             if (lock.tryLock()) {
                 try {
-                    autoUpdateCert();
+                    autoUpdateCert(serialNumber);
                     //更新时间
                     lastUpdateTime = Instant.now();
                 } catch (GeneralSecurityException | IOException e) {
@@ -96,15 +95,20 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         return verifier.verify(serialNumber, message, signature);
     }
 
-    protected void autoUpdateCert() throws IOException, GeneralSecurityException {
+    protected boolean needUpdateCert(String serialNumber) {
+        if (lastUpdateTime == null || verifier == null) {
+            return true;
+        }
+        return verifier.existCertificate(serialNumber) || Duration.between(lastUpdateTime, Instant.now()).toMinutes() >= minutesInterval;
+    }
+
+    public void autoUpdateCert(String serialNumber) throws IOException, GeneralSecurityException {
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(credentials)
-                .withValidator(verifier == null ? (response) -> true : new WechatPay2Validator(verifier))
+                .withValidator(getDownloadCertVerifier(serialNumber) == null ? (response) -> true : new WechatPay2Validator(verifier))
                 .build()) {
-
             HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);
             httpGet.addHeader(ACCEPT, APPLICATION_JSON.toString());
-
             try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
                 int statusCode = response.getStatusLine().getStatusCode();
                 String body = EntityUtils.toString(response.getEntity());
@@ -120,6 +124,14 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
                 }
             }
         }
+    }
+
+    protected Verifier getDownloadCertVerifier(String serialNumber) {
+        // verifier 为空或本地没有对应的平台证书
+        if (verifier == null || verifier.existCertificate(serialNumber)) {
+            return null;
+        }
+        return verifier;
     }
 
     /**
@@ -148,8 +160,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
                 );
                 try {
                     x509Cert.checkValidity();
-                } catch (CertificateExpiredException | CertificateNotYetValidException e) {
-                    continue;
+                } catch (CertificateExpiredException | CertificateNotYetValidException ignore) {
                 }
                 newCertList.add(x509Cert);
             }
