@@ -68,6 +68,16 @@ public class CertificatesVerifier implements Verifier {
                 exist = true;
             }
         }
-        return !exist;
+        return exist;
+    }
+
+    public X509Certificate getLatestCertificate() {
+        X509Certificate latestCert = null;
+        for (X509Certificate x509Cert : certificates.values()) {
+            if (latestCert == null || x509Cert.getNotBefore().after(latestCert.getNotBefore())) {
+                latestCert = x509Cert;
+            }
+        }
+        return latestCert;
     }
 }

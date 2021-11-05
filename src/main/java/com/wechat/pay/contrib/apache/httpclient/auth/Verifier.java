@@ -11,4 +11,6 @@ public interface Verifier {
 
     X509Certificate getValidCertificate();
 
+    X509Certificate getLatestCertificate();
+
 }

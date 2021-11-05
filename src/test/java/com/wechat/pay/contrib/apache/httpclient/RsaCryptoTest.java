@@ -61,7 +61,7 @@ public class RsaCryptoTest {
     @Test
     public void encryptTest() throws Exception {
         String text = "helloworld";
-        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getValidCertificate());
+        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getLatestCertificate());
 
         System.out.println("ciphertext: " + ciphertext);
     }

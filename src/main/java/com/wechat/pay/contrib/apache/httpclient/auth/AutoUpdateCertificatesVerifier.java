@@ -78,6 +78,11 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     }
 
     @Override
+    public X509Certificate getLatestCertificate() {
+        return verifier.getLatestCertificate();
+    }
+
+    @Override
     public boolean verify(String serialNumber, byte[] message, String signature) {
         if (needUpdateCert(serialNumber)) {
             if (lock.tryLock()) {
@@ -99,13 +104,15 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         if (lastUpdateTime == null || verifier == null) {
             return true;
         }
-        return verifier.existCertificate(serialNumber) || Duration.between(lastUpdateTime, Instant.now()).toMinutes() >= minutesInterval;
+        return verifier.existCertificate(serialNumber)
+                || Duration.between(lastUpdateTime, Instant.now()).toMinutes() >= minutesInterval;
     }
 
     public void autoUpdateCert(String serialNumber) throws IOException, GeneralSecurityException {
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(credentials)
-                .withValidator(getDownloadCertVerifier(serialNumber) == null ? (response) -> true : new WechatPay2Validator(verifier))
+                .withValidator(getDownloadCertVerifier(serialNumber) == null ? (response) -> true
+                        : new WechatPay2Validator(verifier))
                 .build()) {
             HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);
             httpGet.addHeader(ACCEPT, APPLICATION_JSON.toString());
