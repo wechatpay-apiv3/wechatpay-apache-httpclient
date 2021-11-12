@@ -135,7 +135,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
     protected Verifier getDownloadCertVerifier(String serialNumber) {
         // verifier 为空或本地没有对应的平台证书
-        if (verifier == null || verifier.existCertificate(serialNumber)) {
+        if (verifier == null || !verifier.existCertificate(serialNumber)) {
             return null;
         }
         return verifier;
@@ -167,7 +167,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
                 );
                 try {
                     x509Cert.checkValidity();
-                } catch (CertificateExpiredException | CertificateNotYetValidException ignore) {
+                } catch (CertificateExpiredException | CertificateNotYetValidException ignored) {
                 }
                 newCertList.add(x509Cert);
             }

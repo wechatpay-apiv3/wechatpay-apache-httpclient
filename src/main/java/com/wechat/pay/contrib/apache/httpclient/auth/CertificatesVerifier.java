@@ -56,6 +56,7 @@ public class CertificatesVerifier implements Verifier {
                 x509Cert.checkValidity();
                 return x509Cert;
             } catch (CertificateExpiredException | CertificateNotYetValidException ignored) {
+                continue;
             }
         }
         throw new NoSuchElementException("没有有效的微信支付平台证书");
