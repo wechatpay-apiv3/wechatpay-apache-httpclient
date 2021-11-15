@@ -32,9 +32,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 在原有CertificatesVerifier基础上，增加自动更新证书功能
+ * 该类已废弃，请使用 ScheduleUpdateCertificatesVerifier
  *
  * @author xy-peng
  */
+@Deprecated
 public class AutoUpdateCertificatesVerifier implements Verifier {
 
     protected static final Logger log = LoggerFactory.getLogger(AutoUpdateCertificatesVerifier.class);
@@ -65,7 +67,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         this.minutesInterval = minutesInterval;
         //构造时更新证书
         try {
-            autoUpdateCert("");
+            autoUpdateCert();
             lastUpdateTime = Instant.now();
         } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException(e);
@@ -84,10 +86,11 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
     @Override
     public boolean verify(String serialNumber, byte[] message, String signature) {
-        if (needUpdateCert(serialNumber)) {
+        if (lastUpdateTime == null
+                || Duration.between(lastUpdateTime, Instant.now()).toMinutes() >= minutesInterval) {
             if (lock.tryLock()) {
                 try {
-                    autoUpdateCert(serialNumber);
+                    autoUpdateCert();
                     //更新时间
                     lastUpdateTime = Instant.now();
                 } catch (GeneralSecurityException | IOException e) {
@@ -100,22 +103,15 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         return verifier.verify(serialNumber, message, signature);
     }
 
-    protected boolean needUpdateCert(String serialNumber) {
-        if (lastUpdateTime == null || verifier == null) {
-            return true;
-        }
-        return verifier.existCertificate(serialNumber)
-                || Duration.between(lastUpdateTime, Instant.now()).toMinutes() >= minutesInterval;
-    }
-
-    public void autoUpdateCert(String serialNumber) throws IOException, GeneralSecurityException {
+    protected void autoUpdateCert() throws IOException, GeneralSecurityException {
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(credentials)
-                .withValidator(getDownloadCertVerifier(serialNumber) == null ? (response) -> true
-                        : new WechatPay2Validator(verifier))
+                .withValidator(verifier == null ? (response) -> true : new WechatPay2Validator(verifier))
                 .build()) {
+
             HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);
             httpGet.addHeader(ACCEPT, APPLICATION_JSON.toString());
+
             try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
                 int statusCode = response.getStatusLine().getStatusCode();
                 String body = EntityUtils.toString(response.getEntity());
@@ -131,14 +127,6 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
                 }
             }
         }
-    }
-
-    protected Verifier getDownloadCertVerifier(String serialNumber) {
-        // verifier 为空或本地没有对应的平台证书
-        if (verifier == null || !verifier.existCertificate(serialNumber)) {
-            return null;
-        }
-        return verifier;
     }
 
     /**
@@ -167,7 +155,8 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
                 );
                 try {
                     x509Cert.checkValidity();
-                } catch (CertificateExpiredException | CertificateNotYetValidException ignored) {
+                } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+                    continue;
                 }
                 newCertList.add(x509Cert);
             }

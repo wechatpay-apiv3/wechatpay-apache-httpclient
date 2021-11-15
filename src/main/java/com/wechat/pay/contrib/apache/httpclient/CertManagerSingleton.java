@@ -6,6 +6,7 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wechat.pay.contrib.apache.httpclient.auth.CertificatesVerifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.Verifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.util.AesUtil;
@@ -18,66 +19,83 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public enum CertManagerSingleton {
-    INSTANCE;
+public class CertManagerSingleton {
+
+    protected static final Logger log = LoggerFactory.getLogger(CertManagerSingleton.class);
+
+    private volatile static CertManagerSingleton instance = null;
+    protected final Credentials credentials;
     /**
      * 证书 map
      */
-    private final ConcurrentHashMap<BigInteger, X509Certificate> certificates = new ConcurrentHashMap<>();
-    /**
-     * 执行定时更新证书的线程池
-     */
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    protected final HashMap<BigInteger, X509Certificate> certificates = new HashMap<>();
     /**
      * 证书下载地址
      */
-    private final String CERT_DOWNLOAD_PATH = "https://api.mch.weixin.qq.com/v3/certificates";
-    private final ReentrantLock lock = new ReentrantLock();
-    private final byte[] apiV3Key;
+    protected final String CERT_DOWNLOAD_PATH = "https://api.mch.weixin.qq.com/v3/certificates";
+    protected final byte[] apiV3Key;
     /**
-     * 证书更新间隔时间（24小时），单位为分钟
+     * 执行定时更新证书的线程池
      */
-    private final long minutesInterval = 1440;
-    /**
-     * 上次更新时间
-     */
-    private volatile Instant lastUpdateTime;
+    protected final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-    CertManagerSingleton(Credentials credentials, Verifier verifier, byte[] apiV3Key) {
+    private CertManagerSingleton(Credentials credentials, byte[] apiV3Key, long minutesInterval) {
+        this.credentials = credentials;
         this.apiV3Key = apiV3Key;
         // 下载并更新证书
-        try {
-            downloadAndUpdateCert(credentials);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        }
-        lastUpdateTime = Instant.now();
-        // 启动定时更新任务
-        executor.execute();
+        updateCertWithoutVerifier();
+        // 启动定时更新证书任务
+        executor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                updateCertWithVerifier();
+            }
+        }, 0, minutesInterval, TimeUnit.MINUTES);
     }
 
     /**
-     * 获取最新的平台证书
+     * 获取平台证书管理器实例
+     *
+     * @return
+     */
+    public static CertManagerSingleton getInstance(Credentials credentials, byte[] apiV3Key, long minutesInterval) {
+        if (instance == null) {
+            synchronized (CertManagerSingleton.class) {
+                if (instance == null) {
+                    instance = new CertManagerSingleton(credentials, apiV3Key, minutesInterval);
+                }
+            }
+        }
+        return instance;
+    }
+
+    /**
+     * 获取平台证书 map
+     */
+    public Map<BigInteger, X509Certificate> getCertificates() {
+        return this.certificates;
+    }
+
+    /**
+     * 获取最新的证书
      *
      * @return
      */
     public X509Certificate getLatestCertificate() {
         X509Certificate latestCert = null;
-        for (X509Certificate x509Cert : certificates.values()) {
+        for (X509Certificate x509Cert : this.certificates.values()) {
             if (latestCert == null || x509Cert.getNotBefore().after(latestCert.getNotBefore())) {
                 latestCert = x509Cert;
             }
@@ -85,11 +103,15 @@ public enum CertManagerSingleton {
         return latestCert;
     }
 
-    public void downloadAndUpdateCert(Credentials credentials, Verifier verifier, String serialNumber)
-            throws IOException, GeneralSecurityException {
+    /**
+     * 下载和更新证书
+     *
+     * @param verifier
+     */
+    public synchronized void downloadAndUpdateCert(Verifier verifier) {
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(credentials)
-                .withValidator(getDownloadCertVerifier(verifier, serialNumber) == null ? (response) -> true
+                .withValidator(verifier == null ? (response) -> true
                         : new WechatPay2Validator(verifier))
                 .build()) {
             HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);
@@ -98,39 +120,32 @@ public enum CertManagerSingleton {
                 int statusCode = response.getStatusLine().getStatusCode();
                 String body = EntityUtils.toString(response.getEntity());
                 if (statusCode == SC_OK) {
-                    List<X509Certificate> newCertList = deserializeToCerts(apiV3Key, body);
+                    Map<BigInteger, X509Certificate> newCertList = deserializeToCerts(apiV3Key, body);
                     if (newCertList.isEmpty()) {
                         log.warn("Cert list is empty");
                         return;
                     }
+                    this.certificates.clear();
+                    this.certificates.putAll(newCertList);
                 } else {
                     log.warn("Auto update cert failed, statusCode = {}, body = {}", statusCode, body);
                 }
             }
+        } catch (IOException | GeneralSecurityException e) {
+            e.printStackTrace();
         }
     }
 
-    public void downloadAndUpdateCert(Credentials credentials)
-            throws IOException, GeneralSecurityException {
-        try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
-                .withCredentials(credentials)
-                .build()) {
-            HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);
-            httpGet.addHeader(ACCEPT, APPLICATION_JSON.toString());
-            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
-                int statusCode = response.getStatusLine().getStatusCode();
-                String body = EntityUtils.toString(response.getEntity());
-                if (statusCode == SC_OK) {
-                    List<X509Certificate> newCertList = deserializeToCerts(apiV3Key, body);
-                    if (newCertList.isEmpty()) {
-                        log.warn("Cert list is empty");
-                        return;
-                    }
-                } else {
-                    log.warn("Auto update cert failed, statusCode = {}, body = {}", statusCode, body);
-                }
-            }
+    public void updateCertWithoutVerifier() {
+        downloadAndUpdateCert(null);
+    }
+
+    public void updateCertWithVerifier() {
+        Verifier verifier = null;
+        if (!this.certificates.isEmpty()) {
+            verifier = new CertificatesVerifier(this.certificates);
         }
+        downloadAndUpdateCert(verifier);
     }
 
     /**
@@ -142,12 +157,12 @@ public enum CertManagerSingleton {
      * @throws GeneralSecurityException
      * @throws IOException
      */
-    private List<X509Certificate> deserializeToCerts(byte[] apiV3Key, String body)
+    protected Map<BigInteger, X509Certificate> deserializeToCerts(byte[] apiV3Key, String body)
             throws GeneralSecurityException, IOException {
         AesUtil aesUtil = new AesUtil(apiV3Key);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode dataNode = mapper.readTree(body).get("data");
-        List<X509Certificate> newCertList = new ArrayList<>();
+        Map<BigInteger, X509Certificate> newCertList = new HashMap<>();
         if (dataNode != null) {
             for (int i = 0, count = dataNode.size(); i < count; i++) {
                 JsonNode node = dataNode.get(i).get("encrypt_certificate");
@@ -168,22 +183,14 @@ public enum CertManagerSingleton {
                 } catch (CertificateExpiredException | CertificateNotYetValidException ignored) {
                     continue;
                 }
-                newCertList.add(x509Cert);
+                newCertList.put(x509Cert.getSerialNumber(), x509Cert);
             }
         }
         return newCertList;
     }
 
-    private Verifier getDownloadCertVerifier(Verifier verifier, String serialNumber) {
-        // verifier 为空或本地没有对应的平台证书
-        if (verifier == null || getCertificate(serialNumber) == null) {
-            return null;
-        }
-        return verifier;
-    }
-
     /**
-     * 获取 serialNumber 对应的平台证书
+     * 获取 serialNumber 对应的证书
      *
      * @param serialNumber
      * @return
@@ -196,5 +203,4 @@ public enum CertManagerSingleton {
         }
         return null;
     }
-
 }

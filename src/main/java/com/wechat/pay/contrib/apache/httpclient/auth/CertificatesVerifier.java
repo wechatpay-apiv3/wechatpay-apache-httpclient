@@ -11,6 +11,7 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -24,6 +25,11 @@ public class CertificatesVerifier implements Verifier {
         for (X509Certificate item : list) {
             certificates.put(item.getSerialNumber(), item);
         }
+    }
+
+    public CertificatesVerifier(Map<BigInteger, X509Certificate> certificates) {
+        this.certificates.clear();
+        this.certificates.putAll(certificates);
     }
 
     protected boolean verify(X509Certificate certificate, byte[] message, String signature) {
@@ -60,16 +66,6 @@ public class CertificatesVerifier implements Verifier {
             }
         }
         throw new NoSuchElementException("没有有效的微信支付平台证书");
-    }
-
-    public boolean existCertificate(String serialNumber) {
-        boolean exist = false;
-        for (X509Certificate x509Cert : certificates.values()) {
-            if (x509Cert.getSerialNumber().toString().equals(serialNumber)) {
-                exist = true;
-            }
-        }
-        return exist;
     }
 
     public X509Certificate getLatestCertificate() {
