@@ -28,7 +28,6 @@ public class CertificatesVerifier implements Verifier {
     }
 
     public CertificatesVerifier(Map<BigInteger, X509Certificate> certificates) {
-        this.certificates.clear();
         this.certificates.putAll(certificates);
     }
 
@@ -62,12 +61,12 @@ public class CertificatesVerifier implements Verifier {
                 x509Cert.checkValidity();
                 return x509Cert;
             } catch (CertificateExpiredException | CertificateNotYetValidException ignored) {
-                continue;
             }
         }
         throw new NoSuchElementException("没有有效的微信支付平台证书");
     }
 
+    @Override
     public X509Certificate getLatestCertificate() {
         X509Certificate latestCert = null;
         for (X509Certificate x509Cert : certificates.values()) {
@@ -78,3 +77,4 @@ public class CertificatesVerifier implements Verifier {
         return latestCert;
     }
 }
+

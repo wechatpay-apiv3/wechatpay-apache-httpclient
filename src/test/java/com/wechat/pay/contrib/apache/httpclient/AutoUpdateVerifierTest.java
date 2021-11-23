@@ -29,6 +29,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+@Deprecated
 public class AutoUpdateVerifierTest {
 
     // 你的商户私钥

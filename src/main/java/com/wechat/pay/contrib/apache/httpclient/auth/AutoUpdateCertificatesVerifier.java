@@ -75,16 +75,6 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     }
 
     @Override
-    public X509Certificate getValidCertificate() {
-        return verifier.getValidCertificate();
-    }
-
-    @Override
-    public X509Certificate getLatestCertificate() {
-        return verifier.getLatestCertificate();
-    }
-
-    @Override
     public boolean verify(String serialNumber, byte[] message, String signature) {
         if (lastUpdateTime == null
                 || Duration.between(lastUpdateTime, Instant.now()).toMinutes() >= minutesInterval) {
@@ -101,6 +91,16 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
             }
         }
         return verifier.verify(serialNumber, message, signature);
+    }
+
+    @Override
+    public X509Certificate getValidCertificate() {
+        return null;
+    }
+
+    @Override
+    public X509Certificate getLatestCertificate() {
+        return null;
     }
 
     protected void autoUpdateCert() throws IOException, GeneralSecurityException {
