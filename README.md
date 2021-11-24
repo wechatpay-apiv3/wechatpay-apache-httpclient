@@ -8,7 +8,7 @@
 
 ## 项目状态
 
-当前版本`0.2.3`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.2.4`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
 
 ## 环境要求
 
@@ -23,7 +23,7 @@
 在你的`build.gradle`文件中加入如下的依赖
 
 ```groovy
-implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.3'
+implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.4'
 ```
 
 ### Maven
@@ -33,7 +33,7 @@ implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.3'
 <dependency>
     <groupId>com.github.wechatpay-apiv3</groupId>
     <artifactId>wechatpay-apache-httpclient</artifactId>
-    <version>0.2.3</version>
+    <version>0.2.4</version>
 </dependency>
 ```
 
