@@ -43,10 +43,11 @@ public class RsaCryptoTest {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
         // 使用定时更新的签名验证器，不需要传入证书
-        verifier = new ScheduleUpdateCertificatesVerifier(
+        verifier = new ScheduleUpdateCertificatesVerifier();
+        // 使用前需要先调用开始定时更新方法
+        verifier.beginScheduleUpdate(
                 new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
                 apiV3Key.getBytes(StandardCharsets.UTF_8));
-
         httpClient = WechatPayHttpClientBuilder.create()
                 .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
                 .withValidator(new WechatPay2Validator(verifier))
@@ -55,14 +56,15 @@ public class RsaCryptoTest {
 
     @After
     public void after() throws IOException {
+        // 使用完毕需调用停止定时更新方法，防止资源泄漏
+        verifier.stopScheduleUpdate();
         httpClient.close();
     }
 
     @Test
     public void encryptTest() throws Exception {
         String text = "helloworld";
-        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getValidCertificate());
-
+        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getLatestCertificate());
         System.out.println("ciphertext: " + ciphertext);
     }
 
@@ -71,7 +73,7 @@ public class RsaCryptoTest {
         HttpPost httpPost = new HttpPost("https://api.mch.weixin.qq.com/v3/smartguide/guides");
 
         String text = "helloworld";
-        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getValidCertificate());
+        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getLatestCertificate());
 
         String data = "{\n"
                 + "  \"store_id\" : 1234,\n"

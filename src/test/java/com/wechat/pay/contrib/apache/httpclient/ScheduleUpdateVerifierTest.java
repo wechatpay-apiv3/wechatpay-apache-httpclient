@@ -44,10 +44,11 @@ public class ScheduleUpdateVerifierTest {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
         // 使用定时更新的签名验证器，不需要传入证书
-        verifier = new ScheduleUpdateCertificatesVerifier(
+        verifier = new ScheduleUpdateCertificatesVerifier();
+        // 使用前需要先调用开始定时更新方法
+        verifier.beginScheduleUpdate(
                 new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
                 apiV3Key.getBytes(StandardCharsets.UTF_8));
-
         httpClient = WechatPayHttpClientBuilder.create()
                 .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
                 .withValidator(new WechatPay2Validator(verifier))
@@ -56,6 +57,8 @@ public class ScheduleUpdateVerifierTest {
 
     @After
     public void after() throws IOException {
+        // 使用完毕需调用停止定时更新方法，防止资源泄漏
+        verifier.stopScheduleUpdate();
         httpClient.close();
     }
 
@@ -78,7 +81,7 @@ public class ScheduleUpdateVerifierTest {
 
     @Test
     public void uploadImageTest() throws Exception {
-        String filePath = "/your/home/hellokitty.png";
+        String filePath = "/your/home/test.png";
 
         URI uri = new URI("https://api.mch.weixin.qq.com/v3/merchant/media/upload");
 
