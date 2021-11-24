@@ -31,6 +31,12 @@ public class CertificatesVerifier implements Verifier {
         this.certificates.putAll(certificates);
     }
 
+
+    public void updateCertificates(Map<BigInteger, X509Certificate> certificates) {
+        this.certificates.clear();
+        this.certificates.putAll(certificates);
+    }
+
     protected boolean verify(X509Certificate certificate, byte[] message, String signature) {
         try {
             Signature sign = Signature.getInstance("SHA256withRSA");

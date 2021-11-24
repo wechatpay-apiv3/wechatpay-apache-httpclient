@@ -44,9 +44,7 @@ public class ScheduleUpdateVerifierTest {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
         // 使用定时更新的签名验证器，不需要传入证书
-        verifier = new ScheduleUpdateCertificatesVerifier();
-        // 使用前需要先调用开始定时更新方法
-        verifier.beginScheduleUpdate(
+        verifier = new ScheduleUpdateCertificatesVerifier(
                 new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
                 apiV3Key.getBytes(StandardCharsets.UTF_8));
         httpClient = WechatPayHttpClientBuilder.create()
@@ -57,7 +55,7 @@ public class ScheduleUpdateVerifierTest {
 
     @After
     public void after() throws IOException {
-        // 使用完毕需调用停止定时更新方法，防止资源泄漏
+        // 使用完毕建议调用停止定时更新方法，防止资源泄漏
         verifier.stopScheduleUpdate();
         httpClient.close();
     }

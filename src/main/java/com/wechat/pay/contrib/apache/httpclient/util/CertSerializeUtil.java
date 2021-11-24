@@ -14,7 +14,7 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SerializeUtil {
+public class CertSerializeUtil {
 
     /**
      * 反序列化证书并解密

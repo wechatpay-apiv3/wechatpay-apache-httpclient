@@ -9,7 +9,7 @@ import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 import com.wechat.pay.contrib.apache.httpclient.auth.CertificatesVerifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.Verifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
-import com.wechat.pay.contrib.apache.httpclient.util.SerializeUtil;
+import com.wechat.pay.contrib.apache.httpclient.util.CertSerializeUtil;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
@@ -76,6 +76,9 @@ public class CertManagerSingleton {
      * @param minutesInterval
      */
     public synchronized void init(Credentials credentials, byte[] apiV3Key, long minutesInterval) {
+        if (credentials == null || apiV3Key.length == 0 || minutesInterval == 0) {
+            throw new IllegalArgumentException("credentials 或 apiV3Key 或 minutesInterval 为空");
+        }
         if (this.credentials == null || this.apiV3Key.length == 0 || this.executor == null
                 || this.certificates == null) {
             this.credentials = credentials;
@@ -99,18 +102,6 @@ public class CertManagerSingleton {
             };
             executor.scheduleAtFixedRate(runnable, 0, minutesInterval, TimeUnit.MINUTES);
         }
-    }
-
-    /**
-     * 判断平台证书管理器是否被初始化
-     *
-     * @return
-     */
-    public boolean isInit() {
-        if (this.certificates == null || this.apiV3Key == null || this.executor == null) {
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -173,7 +164,7 @@ public class CertManagerSingleton {
                 int statusCode = response.getStatusLine().getStatusCode();
                 String body = EntityUtils.toString(response.getEntity());
                 if (statusCode == SC_OK) {
-                    Map<BigInteger, X509Certificate> newCertList = SerializeUtil.deserializeToCerts(apiV3Key, body);
+                    Map<BigInteger, X509Certificate> newCertList = CertSerializeUtil.deserializeToCerts(apiV3Key, body);
                     if (newCertList.isEmpty()) {
                         log.warn("Cert list is empty");
                         return;
