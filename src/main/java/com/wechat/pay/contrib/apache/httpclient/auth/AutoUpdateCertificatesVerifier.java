@@ -95,7 +95,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
     @Override
     public X509Certificate getValidCertificate() {
-        return null;
+        return verifier.getValidCertificate();
     }
 
     @Override

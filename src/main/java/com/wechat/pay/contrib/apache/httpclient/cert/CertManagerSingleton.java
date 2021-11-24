@@ -14,9 +14,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
-import java.util.Date;
-import java.util.HashMap;
+import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -38,17 +38,14 @@ public class CertManagerSingleton {
     private static final String CERT_DOWNLOAD_PATH = "https://api.mch.weixin.qq.com/v3/certificates";
     private static final String SCHEDULE_UPDATE_CERT_THREAD_NAME = "schedule_update_cert_thread";
     private volatile static CertManagerSingleton instance = null;
-    /**
-     * 在线程池的执行队列中允许的最多任务数量
-     */
     private byte[] apiV3Key;
     /**
-     * 证书 map
+     * 平台证书 map
      */
-    private HashMap<BigInteger, X509Certificate> certificates = new HashMap<>();
+    private ConcurrentHashMap<BigInteger, X509Certificate> certificates;
     private Credentials credentials;
     /**
-     * 执行定时更新证书的线程池
+     * 执行定时更新平台证书的线程池
      */
     private ScheduledExecutorService executor;
 
@@ -72,42 +69,56 @@ public class CertManagerSingleton {
     }
 
     /**
-     * 初始化平台证书管理器实例
+     * 初始化平台证书管理器实例，在使用前需先调用该方法
      *
      * @param credentials
      * @param apiV3Key
      * @param minutesInterval
      */
     public synchronized void init(Credentials credentials, byte[] apiV3Key, long minutesInterval) {
-        if (this.credentials == null || this.apiV3Key == null || this.executor == null) {
+        if (this.credentials == null || this.apiV3Key.length == 0 || this.executor == null) {
             this.credentials = credentials;
             this.apiV3Key = apiV3Key;
             this.executor = new SafeSingleScheduleExecutor();
+            this.certificates = new ConcurrentHashMap<>();
 
             // 初始化证书
             initCertificates();
 
             // 启动定时更新证书任务
-            executor.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.currentThread().setName(SCHEDULE_UPDATE_CERT_THREAD_NAME);
-                        log.info("Begin update Certificate.Date:{}", new Date());
-                        updateCertificates();
-                        log.info("Finish update Certificate.Date:{}", new Date());
-                    } catch (Throwable t) {
-                        log.error("Update Certificate failed", t);
-                    }
+            Runnable runnable = () -> {
+                try {
+                    Thread.currentThread().setName(SCHEDULE_UPDATE_CERT_THREAD_NAME);
+                    log.info("Begin update Certificate.Date:{}", Instant.now());
+                    updateCertificates();
+                    log.info("Finish update Certificate.Date:{}", Instant.now());
+                } catch (Throwable t) {
+                    log.error("Update Certificate failed", t);
                 }
-            }, 0, minutesInterval, TimeUnit.MINUTES);
+            };
+            executor.scheduleAtFixedRate(runnable, 0, minutesInterval, TimeUnit.MINUTES);
         }
     }
 
     /**
-     * 关闭定时更新平台证书功能
+     * 判断平台证书管理器是否被初始化
+     *
+     * @return
      */
-    public void stopScheduleUpdate() {
+    public boolean isInit() {
+        if (certificates == null || apiV3Key == null || this.executor == null) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 关闭线程池
+     */
+    public void close() {
+        if (this.executor == null) {
+            throw new IllegalStateException("请先调用 init 方法初始化实例");
+        }
         try {
             this.executor.shutdownNow();
         } catch (Exception e) {
@@ -120,7 +131,7 @@ public class CertManagerSingleton {
      */
     public Map<BigInteger, X509Certificate> getCertificates() {
         if (this.certificates.isEmpty()) {
-            throw new NullPointerException("请先调用 init 方法初初始化实例");
+            throw new IllegalStateException("请先调用 init 方法初始化实例");
         }
         return this.certificates;
     }
@@ -132,7 +143,7 @@ public class CertManagerSingleton {
      */
     public X509Certificate getLatestCertificate() {
         if (this.certificates.isEmpty()) {
-            throw new NullPointerException("请先调用 init 方法初初始化实例");
+            throw new IllegalStateException("请先调用 init 方法初始化实例");
         }
         X509Certificate latestCert = null;
         for (X509Certificate x509Cert : this.certificates.values()) {
@@ -149,7 +160,7 @@ public class CertManagerSingleton {
      *
      * @param verifier
      */
-    public synchronized void downloadAndUpdateCert(Verifier verifier) {
+    private synchronized void downloadAndUpdateCert(Verifier verifier) {
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(this.credentials)
                 .withValidator(verifier == null ? (response) -> true
@@ -187,7 +198,7 @@ public class CertManagerSingleton {
     /**
      * 更新平台证书 map
      */
-    public void updateCertificates() {
+    private void updateCertificates() {
         Verifier verifier = null;
         if (!this.certificates.isEmpty()) {
             verifier = new CertificatesVerifier(this.certificates);
