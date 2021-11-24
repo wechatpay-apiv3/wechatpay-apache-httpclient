@@ -76,7 +76,8 @@ public class CertManagerSingleton {
      * @param minutesInterval
      */
     public synchronized void init(Credentials credentials, byte[] apiV3Key, long minutesInterval) {
-        if (this.credentials == null || this.apiV3Key.length == 0 || this.executor == null) {
+        if (this.credentials == null || this.apiV3Key.length == 0 || this.executor == null
+                || this.certificates == null) {
             this.credentials = credentials;
             this.apiV3Key = apiV3Key;
             this.executor = new SafeSingleScheduleExecutor();
@@ -106,7 +107,7 @@ public class CertManagerSingleton {
      * @return
      */
     public boolean isInit() {
-        if (certificates == null || apiV3Key == null || this.executor == null) {
+        if (this.certificates == null || this.apiV3Key == null || this.executor == null) {
             return false;
         }
         return true;
@@ -130,7 +131,7 @@ public class CertManagerSingleton {
      * 获取平台证书 map
      */
     public Map<BigInteger, X509Certificate> getCertificates() {
-        if (this.certificates.isEmpty()) {
+        if (this.certificates == null) {
             throw new IllegalStateException("请先调用 init 方法初始化实例");
         }
         return this.certificates;
@@ -142,7 +143,7 @@ public class CertManagerSingleton {
      * @return
      */
     public X509Certificate getLatestCertificate() {
-        if (this.certificates.isEmpty()) {
+        if (this.certificates == null) {
             throw new IllegalStateException("请先调用 init 方法初始化实例");
         }
         X509Certificate latestCert = null;
@@ -205,5 +206,4 @@ public class CertManagerSingleton {
         }
         downloadAndUpdateCert(verifier);
     }
-
 }

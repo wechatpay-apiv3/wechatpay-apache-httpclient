@@ -100,7 +100,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
     @Override
     public X509Certificate getLatestCertificate() {
-        return null;
+        return this.verifier.getLatestCertificate();
     }
 
     protected void autoUpdateCert() throws IOException, GeneralSecurityException {
