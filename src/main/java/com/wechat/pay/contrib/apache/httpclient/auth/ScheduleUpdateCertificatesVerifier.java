@@ -68,7 +68,7 @@ public class ScheduleUpdateCertificatesVerifier implements Verifier {
 
 
     /**
-     * 停止定时更新
+     * 停止定时更新，停止无法再重新启动
      */
     public void stopScheduleUpdate() {
         certManagerSingleton.close();

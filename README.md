@@ -200,9 +200,6 @@ HttpClient httpClient = builder.build();
 
 // 后面跟使用Apache HttpClient一样
 HttpResponse response = httpClient.execute(...);
-
-// 使用完毕建议调用停止定时更新方法，防止资源泄漏
-verifier.stopScheduleUpdate();
 ```
 
 ### 风险

@@ -55,8 +55,6 @@ public class ScheduleUpdateVerifierTest {
 
     @After
     public void after() throws IOException {
-        // 使用完毕建议调用停止定时更新方法，防止资源泄漏
-        verifier.stopScheduleUpdate();
         httpClient.close();
     }
 
