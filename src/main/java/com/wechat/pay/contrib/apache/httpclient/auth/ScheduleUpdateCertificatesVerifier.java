@@ -3,6 +3,7 @@ package com.wechat.pay.contrib.apache.httpclient.auth;
 import com.wechat.pay.contrib.apache.httpclient.Credentials;
 import com.wechat.pay.contrib.apache.httpclient.cert.CertManagerSingleton;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 在原有 CertificatesVerifier 基础上，增加定时更新证书功能（默认1天）
@@ -10,10 +11,12 @@ import java.security.cert.X509Certificate;
 public class ScheduleUpdateCertificatesVerifier implements Verifier {
 
     protected static final int UPDATE_INTERVAL_MINUTE = 1440;
+    private final ReentrantLock lock;
     private CertManagerSingleton certManagerSingleton;
     private CertificatesVerifier verifier;
 
     public ScheduleUpdateCertificatesVerifier(Credentials credentials, byte[] apiv3Key) {
+        lock = new ReentrantLock();
         initCertManager(credentials, apiv3Key);
         verifier = new CertificatesVerifier(certManagerSingleton.getCertificates());
     }
@@ -42,7 +45,13 @@ public class ScheduleUpdateCertificatesVerifier implements Verifier {
         if (serialNumber.isEmpty() || message.length == 0 || signature.isEmpty()) {
             throw new IllegalArgumentException("serialNumber 或 message 或 signature 为空");
         }
-        verifier.updateCertificates(certManagerSingleton.getCertificates());
+        if (lock.tryLock()) {
+            try {
+                verifier.updateCertificates(certManagerSingleton.getCertificates());
+            } finally {
+                lock.unlock();
+            }
+        }
         return verifier.verify(serialNumber, message, signature);
     }
 
@@ -62,7 +71,7 @@ public class ScheduleUpdateCertificatesVerifier implements Verifier {
      * 停止定时更新
      */
     public void stopScheduleUpdate() {
-        this.certManagerSingleton.close();
+        certManagerSingleton.close();
     }
 
 }
