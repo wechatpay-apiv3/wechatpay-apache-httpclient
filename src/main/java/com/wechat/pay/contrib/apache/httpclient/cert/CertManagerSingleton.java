@@ -108,11 +108,11 @@ public class CertManagerSingleton {
      * 关闭线程池
      */
     public void close() {
-        if (this.executor == null) {
+        if (executor == null) {
             throw new IllegalStateException("请先调用 init 方法初始化实例");
         }
         try {
-            this.executor.shutdownNow();
+            executor.shutdownNow();
         } catch (Exception e) {
             log.error("Executor shutdown now failed", e);
         }
@@ -122,10 +122,10 @@ public class CertManagerSingleton {
      * 获取平台证书 map
      */
     public Map<BigInteger, X509Certificate> getCertificates() {
-        if (this.certificates == null) {
+        if (certificates == null) {
             throw new IllegalStateException("请先调用 init 方法初始化实例");
         }
-        return this.certificates;
+        return certificates;
     }
 
     /**
@@ -134,11 +134,11 @@ public class CertManagerSingleton {
      * @return
      */
     public X509Certificate getLatestCertificate() {
-        if (this.certificates == null) {
+        if (certificates == null) {
             throw new IllegalStateException("请先调用 init 方法初始化实例");
         }
         X509Certificate latestCert = null;
-        for (X509Certificate x509Cert : this.certificates.values()) {
+        for (X509Certificate x509Cert : certificates.values()) {
             // 若 latestCert 为空或 x509Cert 的证书有效开始时间在 latestCert 之后，则更新 latestCert
             if (latestCert == null || x509Cert.getNotBefore().after(latestCert.getNotBefore())) {
                 latestCert = x509Cert;
@@ -154,7 +154,7 @@ public class CertManagerSingleton {
      */
     private synchronized void downloadAndUpdateCert(Verifier verifier) {
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
-                .withCredentials(this.credentials)
+                .withCredentials(credentials)
                 .withValidator(verifier == null ? (response) -> true
                         : new WechatPay2Validator(verifier))
                 .build()) {
@@ -169,8 +169,8 @@ public class CertManagerSingleton {
                         log.warn("Cert list is empty");
                         return;
                     }
-                    this.certificates.clear();
-                    this.certificates.putAll(newCertList);
+                    certificates.clear();
+                    certificates.putAll(newCertList);
                 } else {
                     log.error("Auto update cert failed, statusCode = {}, body = {}", statusCode, body);
                 }
@@ -192,8 +192,8 @@ public class CertManagerSingleton {
      */
     private void updateCertificates() {
         Verifier verifier = null;
-        if (!this.certificates.isEmpty()) {
-            verifier = new CertificatesVerifier(this.certificates);
+        if (!certificates.isEmpty()) {
+            verifier = new CertificatesVerifier(certificates);
         }
         downloadAndUpdateCert(verifier);
     }

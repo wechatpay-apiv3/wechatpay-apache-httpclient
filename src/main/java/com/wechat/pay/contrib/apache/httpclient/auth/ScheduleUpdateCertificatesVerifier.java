@@ -12,11 +12,12 @@ public class ScheduleUpdateCertificatesVerifier implements Verifier {
 
     protected static final int UPDATE_INTERVAL_MINUTE = 1440;
     private final ReentrantLock lock;
-    private CertManagerSingleton certManagerSingleton;
-    private CertificatesVerifier verifier;
+    private final CertManagerSingleton certManagerSingleton;
+    private final CertificatesVerifier verifier;
 
     public ScheduleUpdateCertificatesVerifier(Credentials credentials, byte[] apiv3Key) {
         lock = new ReentrantLock();
+        certManagerSingleton = CertManagerSingleton.getInstance();
         initCertManager(credentials, apiv3Key);
         verifier = new CertificatesVerifier(certManagerSingleton.getCertificates());
     }
@@ -31,7 +32,6 @@ public class ScheduleUpdateCertificatesVerifier implements Verifier {
         if (credentials == null || apiv3Key.length == 0) {
             throw new IllegalArgumentException("credentials 或 apiv3Key 为空");
         }
-        certManagerSingleton = CertManagerSingleton.getInstance();
         certManagerSingleton.init(credentials, apiv3Key, UPDATE_INTERVAL_MINUTE);
     }
 
