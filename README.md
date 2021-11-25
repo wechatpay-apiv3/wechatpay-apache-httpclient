@@ -178,15 +178,15 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
 
 ## 定时更新证书功能
 
-版本`>=0.2.4`可使用 ScheduleUpdateCertificatesVerifier 类替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认为1天）。
+替换`自动更新证书功能`。
 
-参数说明：`apiV3Key`是String格式的API v3密钥。
+版本`>=0.2.4`可使用 ScheduledUpdateCertificatesVerifier 类替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认为1天）。
 
 示例代码：
 
 ```java
 // 使用定时更新的签名验证器，不需要传入证书
-verifier = new ScheduleUpdateCertificatesVerifier(
+verifier = new ScheduledUpdateCertificatesVerifier(
                 new WechatPay2Credentials(merchantId, new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
                 apiV3Key.getBytes(StandardCharsets.UTF_8));
 
@@ -204,9 +204,9 @@ HttpResponse response = httpClient.execute(...);
 
 ### 风险
 
-因为不需要传入微信支付平台证书，AutoUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
+因为不需要传入微信支付平台证书，ScheduledUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
 
-但下载时会通过 **HTTPS**、**AES 对称加密**来保证证书安全，所以可以认为，在使用官方 JDK、且 APIv3 密钥不泄露的情况下，ScheduleUpdateCertificatesVerifier 是**安全**的。
+但下载时会通过 **HTTPS**、**AES 对称加密**来保证证书安全，所以可以认为，在使用官方 JDK、且 APIv3 密钥不泄露的情况下，ScheduledUpdateCertificatesVerifier 是**安全**的。
 
 ## 自动更新证书功能
 

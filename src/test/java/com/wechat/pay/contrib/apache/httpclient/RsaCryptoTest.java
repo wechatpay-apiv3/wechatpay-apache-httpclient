@@ -8,7 +8,7 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.junit.Assert.assertTrue;
 
 import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
-import com.wechat.pay.contrib.apache.httpclient.auth.ScheduleUpdateCertificatesVerifier;
+import com.wechat.pay.contrib.apache.httpclient.auth.ScheduledUpdateCertificatesVerifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
@@ -36,14 +36,14 @@ public class RsaCryptoTest {
     private static final String wechatPaySerial = ""; // 平台证书序列号
 
     private CloseableHttpClient httpClient;
-    private ScheduleUpdateCertificatesVerifier verifier;
+    private ScheduledUpdateCertificatesVerifier verifier;
 
     @Before
     public void setup() {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
         // 使用定时更新的签名验证器，不需要传入证书
-        verifier = new ScheduleUpdateCertificatesVerifier(
+        verifier = new ScheduledUpdateCertificatesVerifier(
                 new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
                 apiV3Key.getBytes(StandardCharsets.UTF_8));
         httpClient = WechatPayHttpClientBuilder.create()
