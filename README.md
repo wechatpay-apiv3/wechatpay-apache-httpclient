@@ -8,7 +8,10 @@
 
 ## 项目状态
 
-当前版本`0.2.4`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.3.0`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+
+## 升级指引
+版本`0.3.0`对`Verifier`接口新增了`getLatestCertificate`方法。如果你已经在使用版本<`0.3.0`的SDK，且使用自定义类实现了`Verifier`接口，在升级版本为`0.3.0`时，请在自定义类中实现`getLatestCertificate`方法。
 
 ## 环境要求
 
@@ -23,7 +26,7 @@
 在你的`build.gradle`文件中加入如下的依赖
 
 ```groovy
-implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.4'
+implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.3.0'
 ```
 
 ### Maven
@@ -33,7 +36,7 @@ implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.4'
 <dependency>
     <groupId>com.github.wechatpay-apiv3</groupId>
     <artifactId>wechatpay-apache-httpclient</artifactId>
-    <version>0.2.4</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
@@ -180,7 +183,7 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
 
 替换`自动更新证书功能`。
 
-版本`>=0.2.4`可使用 ScheduledUpdateCertificatesVerifier 类替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认为1天）。
+版本>=`0.3.0`可使用 ScheduledUpdateCertificatesVerifier 类替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认为1小时）。
 
 示例代码：
 

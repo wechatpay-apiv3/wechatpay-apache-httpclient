@@ -6,11 +6,11 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * 在原有 CertificatesVerifier 基础上，增加定时更新证书功能（默认1天）
+ * 在原有 CertificatesVerifier 基础上，增加定时更新证书功能（默认1小时）
  */
 public class ScheduledUpdateCertificatesVerifier implements Verifier {
 
-    protected static final int UPDATE_INTERVAL_MINUTE = 1440;
+    protected static final int UPDATE_INTERVAL_MINUTE = 60;
     private final ReentrantLock lock;
     private final CertManagerSingleton certManagerSingleton;
     private final CertificatesVerifier verifier;

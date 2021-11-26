@@ -15,6 +15,11 @@ public interface Verifier {
     @Deprecated
     X509Certificate getValidCertificate();
 
+    /**
+     * 获取最新的证书
+     *
+     * @return
+     */
     X509Certificate getLatestCertificate();
 
 }
