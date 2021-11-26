@@ -12,47 +12,17 @@
 
 ## 升级指引
 
-版本`v0.3.0` 进行了以下变更：
+最新版本`0.3.0`重写了[定时更新平台证书功能](#定时更新平台证书功能)。原因参考[issue#66](https://github.com/wechatpay-apiv3/wechatpay-apache-httpclient/issues/66)。此次升级可能导致`Verifier`接口的兼容性问题，建议开发者以如下方式对代码进行更新。
 
-- 增加了[定时更新平台证书功能](#定时更新平台证书功能)，替换原来的自动更新平台证书功能。
+1. 升级依赖
 
-- 对`Verifier`接口新增了`getLatestCertificate`方法。
+2. 若使用`AutoUpdateCertificatesVerifier`，进行如下操作
 
-以上变更的原因为：
+   使用`ScheduledUpdateCertificatesVerifier`替换`AutoUpdateCertificatesVerifier`。
 
-- 原来的自动更新平台证书功能，在新旧平台证书更换期间，可能导致下载新平台证书时验签不过，可参考 [issue](https://github.com/wechatpay-apiv3/wechatpay-apache-httpclient/issues/66) 。新增的定时更新平台证书功能，可避免上述问题。
+3. 若自定义类实现了`Verifier`接口，进行如下操作
 
-- 在新旧平台证书更换期间，需要使用最新的平台证书加密请求消息中的敏感信息，可参考 [微信支付APIv3文档](https://pay.weixin.qq.com/wiki/doc/apiv3/wechatpay/wechatpay5_1.shtml) 。`getValidCertificate`方法不能保证获取最新的平台证书，因此增加`getLatestCertificate`方法来替换使用。
-
-
-若你正使用版本<`v0.3.0`的SDK，并准备升级为版本`v0.3.0`，请根据以下操作步骤进行。
-
--  升级依赖
-
-    - 使用Gradle管理依赖：将`build.gradle`中的SDK依赖修改为
-    ```groovy
-    implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.3.0'
-    ```
-    - 使用Maven管理依赖：将Maven中的SDK依赖修改为
-    ```xml
-    <dependency>
-        <groupId>com.github.wechatpay-apiv3</groupId>
-        <artifactId>wechatpay-apache-httpclient</artifactId>
-        <version>0.3.0</version>
-    </dependency>
-    ```
-
-- 实现 getLatestCertificate 方法
-
-    **若你没有使用自定义类实现Verifier接口，则无需进行此步骤。**
-
-    若你使用自定义类实现了`Verifier`接口，在升级版本为`0.3.0`时，请在自定义类中实现`getLatestCertificate`方法。
-
--  使用 ScheduledUpdateCertificatesVerifier 替换 AutoUpdateCertificatesVerifier
-
-    **若你没有使用AutoUpdateCertificatesVerifier，则无需进行此步骤。**
-
-    将代码中使用`AutoUpdateCertificatesVerifier`的地方替换为`ScheduledUpdateCertificatesVerifier`，并修改import的类为`ScheduledUpdateCertificatesVerifier`。
+   在自定义类中实现`getLatestCertificate`方法。
 
 ## 环境要求
 
