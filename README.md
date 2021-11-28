@@ -12,17 +12,9 @@
 
 ## 升级指引
 
-最新版本`0.3.0`重写了[定时更新平台证书功能](#定时更新平台证书功能)。原因参考[issue#66](https://github.com/wechatpay-apiv3/wechatpay-apache-httpclient/issues/66)。此次升级可能导致`Verifier`接口的兼容性问题，建议开发者以如下方式对代码进行更新。
+版本`0.3.0`提供了更可靠的[定时更新平台证书功能](#定时更新平台证书功能)。若你使用了自动更新证书功能，推荐升级并使用新的`ScheduledUpdateCertificatesVerifier`替换`AutoUpdateCertificatesVerifier`。
 
-1. 升级依赖
-
-2. 若使用`AutoUpdateCertificatesVerifier`，进行如下操作
-
-   使用`ScheduledUpdateCertificatesVerifier`替换`AutoUpdateCertificatesVerifier`。
-
-3. 若自定义类实现了`Verifier`接口，进行如下操作
-
-   在自定义类中实现`getLatestCertificate`方法。
+注：`Verifier`接口新增了`getLatestCertificate()`方法。若你通过实现`Verifier`接口自定义了验签器，升级后需实现该方法。
 
 ## 环境要求
 
@@ -191,8 +183,6 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
 ```
 
 ## 定时更新平台证书功能
-
-替换`自动更新证书功能`。
 
 版本>=`0.3.0`可使用 ScheduledUpdateCertificatesVerifier 类替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认为1小时）。
 
