@@ -52,11 +52,6 @@ public class CertManagerSingleton {
     private CertManagerSingleton() {
     }
 
-    /**
-     * 获取平台证书管理器实例
-     *
-     * @return
-     */
     public static CertManagerSingleton getInstance() {
         if (instance == null) {
             synchronized (CertManagerSingleton.class) {
@@ -71,9 +66,9 @@ public class CertManagerSingleton {
     /**
      * 初始化平台证书管理器实例，在使用前需先调用该方法
      *
-     * @param credentials
-     * @param apiV3Key
-     * @param minutesInterval
+     * @param credentials 认证器
+     * @param apiV3Key APIv3密钥
+     * @param minutesInterval 定时更新间隔时间
      */
     public synchronized void init(Credentials credentials, byte[] apiV3Key, long minutesInterval) {
         if (credentials == null || apiV3Key.length == 0 || minutesInterval == 0) {
@@ -118,9 +113,6 @@ public class CertManagerSingleton {
         }
     }
 
-    /**
-     * 获取平台证书 map
-     */
     public Map<BigInteger, X509Certificate> getCertificates() {
         if (certificates == null) {
             throw new IllegalStateException("请先调用init方法初始化实例");
@@ -128,11 +120,6 @@ public class CertManagerSingleton {
         return certificates;
     }
 
-    /**
-     * 获取最新的证书
-     *
-     * @return
-     */
     public X509Certificate getLatestCertificate() {
         if (certificates == null) {
             throw new IllegalStateException("请先调用init方法初始化实例");
@@ -147,11 +134,6 @@ public class CertManagerSingleton {
         return latestCert;
     }
 
-    /**
-     * 下载和更新证书
-     *
-     * @param verifier
-     */
     private synchronized void downloadAndUpdateCert(Verifier verifier) {
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(credentials)
@@ -180,16 +162,10 @@ public class CertManagerSingleton {
         }
     }
 
-    /**
-     * 初始化平台证书 map
-     */
     private void initCertificates() {
         downloadAndUpdateCert(null);
     }
 
-    /**
-     * 更新平台证书 map
-     */
     private void updateCertificates() {
         Verifier verifier = null;
         if (!certificates.isEmpty()) {

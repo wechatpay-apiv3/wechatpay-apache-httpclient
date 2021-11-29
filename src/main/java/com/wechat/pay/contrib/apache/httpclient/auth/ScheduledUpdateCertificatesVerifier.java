@@ -22,12 +22,6 @@ public class ScheduledUpdateCertificatesVerifier implements Verifier {
         verifier = new CertificatesVerifier(certManagerSingleton.getCertificates());
     }
 
-    /**
-     * 初始化平台证书管理器
-     *
-     * @param credentials
-     * @param apiv3Key
-     */
     public void initCertManager(Credentials credentials, byte[] apiv3Key) {
         if (credentials == null || apiv3Key.length == 0) {
             throw new IllegalArgumentException("credentials或apiv3Key为空");

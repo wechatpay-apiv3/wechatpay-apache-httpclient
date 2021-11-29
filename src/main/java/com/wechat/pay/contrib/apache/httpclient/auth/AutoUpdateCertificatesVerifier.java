@@ -129,9 +129,6 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         }
     }
 
-    /**
-     * 反序列化证书并解密
-     */
     protected List<X509Certificate> deserializeToCerts(byte[] apiV3Key, String body)
             throws GeneralSecurityException, IOException {
         AesUtil aesUtil = new AesUtil(apiV3Key);

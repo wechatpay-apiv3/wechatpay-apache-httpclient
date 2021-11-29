@@ -11,15 +11,12 @@ public interface Verifier {
 
     /**
      * 该方法已废弃，请使用getLatestCertificate代替
+     *
+     * @return 合法证书
      */
     @Deprecated
     X509Certificate getValidCertificate();
 
-    /**
-     * 获取最新的证书
-     *
-     * @return
-     */
     X509Certificate getLatestCertificate();
 
 }

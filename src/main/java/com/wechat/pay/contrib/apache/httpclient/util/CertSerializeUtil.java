@@ -19,11 +19,11 @@ public class CertSerializeUtil {
     /**
      * 反序列化证书并解密
      *
-     * @param apiV3Key
-     * @param body
-     * @return
-     * @throws GeneralSecurityException
-     * @throws IOException
+     * @param apiV3Key APIv3密钥
+     * @param body 下载证书的请求返回体
+     * @return 证书list
+     * @throws GeneralSecurityException 当证书过期或尚未生效时
+     * @throws IOException 当body不合法时
      */
     public static Map<BigInteger, X509Certificate> deserializeToCerts(byte[] apiV3Key, String body)
             throws GeneralSecurityException, IOException {
