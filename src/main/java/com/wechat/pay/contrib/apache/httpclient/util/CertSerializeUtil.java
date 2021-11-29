@@ -14,6 +14,9 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author lianup
+ */
 public class CertSerializeUtil {
 
     /**

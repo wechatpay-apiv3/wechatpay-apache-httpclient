@@ -7,6 +7,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 在原有CertificatesVerifier基础上，增加定时更新证书功能（默认1小时）
+ *
+ * @author lianup
  */
 public class ScheduledUpdateCertificatesVerifier implements Verifier {
 

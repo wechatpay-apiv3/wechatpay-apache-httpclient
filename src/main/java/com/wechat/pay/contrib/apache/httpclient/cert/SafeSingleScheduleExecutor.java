@@ -5,6 +5,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author lianup
+ */
 public class SafeSingleScheduleExecutor extends ScheduledThreadPoolExecutor {
 
     private static final int MAX_QUEUE_CAPACITY = 1;

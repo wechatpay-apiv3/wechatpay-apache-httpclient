@@ -2,9 +2,9 @@ package com.wechat.pay.contrib.apache.httpclient.constant;
 
 /**
  * 微信支付HTTP请求头相关常量
+ * Date: 2021/10/29
  *
  * @author Eric.Lee
- *         Date: 2021/10/29
  */
 public final class WechatPayHttpHeaders {
 
