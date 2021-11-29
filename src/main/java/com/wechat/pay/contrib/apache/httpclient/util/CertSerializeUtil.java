@@ -16,6 +16,7 @@ import java.util.Map;
 
 /**
  * @author lianup
+ * @since 0.3.0
  */
 public class CertSerializeUtil {
 

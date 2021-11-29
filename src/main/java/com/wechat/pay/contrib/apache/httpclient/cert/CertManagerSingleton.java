@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
  * 平台证书管理器
  *
  * @author lianup
+ * @since 0.3.0
  */
 public class CertManagerSingleton {
 

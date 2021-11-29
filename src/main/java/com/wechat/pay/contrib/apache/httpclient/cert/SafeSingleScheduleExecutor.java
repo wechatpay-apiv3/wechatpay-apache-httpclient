@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author lianup
+ * @since 0.3.0
  */
 public class SafeSingleScheduleExecutor extends ScheduledThreadPoolExecutor {
 
