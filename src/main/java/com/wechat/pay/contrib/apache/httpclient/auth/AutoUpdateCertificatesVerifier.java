@@ -32,9 +32,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 在原有CertificatesVerifier基础上，增加自动更新证书功能
+ * 该类已废弃，请使用ScheduledUpdateCertificatesVerifier
  *
  * @author xy-peng
  */
+@Deprecated
 public class AutoUpdateCertificatesVerifier implements Verifier {
 
     protected static final Logger log = LoggerFactory.getLogger(AutoUpdateCertificatesVerifier.class);
@@ -73,11 +75,6 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     }
 
     @Override
-    public X509Certificate getValidCertificate() {
-        return verifier.getValidCertificate();
-    }
-
-    @Override
     public boolean verify(String serialNumber, byte[] message, String signature) {
         if (lastUpdateTime == null
                 || Duration.between(lastUpdateTime, Instant.now()).toMinutes() >= minutesInterval) {
@@ -94,6 +91,16 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
             }
         }
         return verifier.verify(serialNumber, message, signature);
+    }
+
+    @Override
+    public X509Certificate getValidCertificate() {
+        return verifier.getValidCertificate();
+    }
+
+    @Override
+    public X509Certificate getLatestCertificate() {
+        return verifier.getLatestCertificate();
     }
 
     protected void autoUpdateCert() throws IOException, GeneralSecurityException {
@@ -122,9 +129,6 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         }
     }
 
-    /**
-     * 反序列化证书并解密
-     */
     protected List<X509Certificate> deserializeToCerts(byte[] apiV3Key, String body)
             throws GeneralSecurityException, IOException {
         AesUtil aesUtil = new AesUtil(apiV3Key);

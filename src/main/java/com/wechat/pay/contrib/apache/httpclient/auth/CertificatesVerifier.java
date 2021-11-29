@@ -11,6 +11,7 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -24,6 +25,16 @@ public class CertificatesVerifier implements Verifier {
         for (X509Certificate item : list) {
             certificates.put(item.getSerialNumber(), item);
         }
+    }
+
+    public CertificatesVerifier(Map<BigInteger, X509Certificate> certificates) {
+        this.certificates.putAll(certificates);
+    }
+
+
+    public void updateCertificates(Map<BigInteger, X509Certificate> certificates) {
+        this.certificates.clear();
+        this.certificates.putAll(certificates);
     }
 
     protected boolean verify(X509Certificate certificate, byte[] message, String signature) {
@@ -61,4 +72,16 @@ public class CertificatesVerifier implements Verifier {
         throw new NoSuchElementException("没有有效的微信支付平台证书");
     }
 
+    @Override
+    public X509Certificate getLatestCertificate() {
+        X509Certificate latestCert = null;
+        for (X509Certificate x509Cert : certificates.values()) {
+            // 若latestCert为空或x509Cert的证书有效开始时间在latestCert之后，则更新latestCert
+            if (latestCert == null || x509Cert.getNotBefore().after(latestCert.getNotBefore())) {
+                latestCert = x509Cert;
+            }
+        }
+        return latestCert;
+    }
 }
+

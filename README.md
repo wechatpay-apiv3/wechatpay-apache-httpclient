@@ -8,7 +8,13 @@
 
 ## 项目状态
 
-当前版本`0.2.3`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.3.0`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+
+## 升级指引
+
+版本`0.3.0`提供了更可靠的[定时更新平台证书功能](#定时更新平台证书功能)。若你使用了自动更新证书功能，推荐升级并使用新的`ScheduledUpdateCertificatesVerifier`替换`AutoUpdateCertificatesVerifier`。
+
+注：`Verifier`接口新增了`getLatestCertificate()`方法。若你通过实现`Verifier`接口自定义了验签器，升级后需实现该方法。
 
 ## 环境要求
 
@@ -23,7 +29,7 @@
 在你的`build.gradle`文件中加入如下的依赖
 
 ```groovy
-implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.3'
+implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.3.0'
 ```
 
 ### Maven
@@ -33,7 +39,7 @@ implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.2.3'
 <dependency>
     <groupId>com.github.wechatpay-apiv3</groupId>
     <artifactId>wechatpay-apache-httpclient</artifactId>
-    <version>0.2.3</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
@@ -58,10 +64,10 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
 // ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
 
 // 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签
-HttpClient httpClient = builder.build();
+CloseableHttpClient httpClient = builder.build();
 
 // 后面跟使用Apache HttpClient一样
-HttpResponse response = httpClient.execute(...);
+ClosableHttpResponse response = httpClient.execute(...);
 ```
 
 参数说明：
@@ -69,7 +75,7 @@ HttpResponse response = httpClient.execute(...);
 + `merchantId`商户号。
 + `merchantSerialNumber`商户API证书的证书序列号。
 + `merchantPrivateKey`商户API私钥，如何加载商户API私钥请看[常见问题](#如何加载商户私钥)。
-+ `wechatpayCertificates`微信支付平台证书。你也可以使用后面章节提到的“[自动更新证书功能](#自动更新证书功能)”，而不需要关心平台证书的来龙去脉。
++ `wechatpayCertificates`微信支付平台证书。你也可以使用后面章节提到的“[定时更新平台证书功能](#定时更新平台证书功能)”，而不需要关心平台证书的来龙去脉。
 
 ### 示例：获取平台证书
 
@@ -176,19 +182,17 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withWechatPay(wechatpayCertificates);
 ```
 
-## 自动更新证书功能
+## 定时更新平台证书功能
 
-版本`>=0.1.5`可使用 AutoUpdateCertificatesVerifier 类替代默认的验签器。它会在构造时自动下载商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu)，并每隔一段时间（默认为1个小时）更新证书。
-
-参数说明：`apiV3Key`是String格式的API v3密钥。
+版本>=`0.3.0`可使用 ScheduledUpdateCertificatesVerifier 类替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认为1小时）。
 
 示例代码：
 
 ```java
-//不需要传入微信支付证书了
-AutoUpdateCertificatesVerifier verifier = new AutoUpdateCertificatesVerifier(
-        new WechatPay2Credentials(merchantId, new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
-        apiV3Key.getBytes("utf-8"));
+// 使用定时更新的签名验证器，不需要传入证书
+verifier = new ScheduledUpdateCertificatesVerifier(
+                new WechatPay2Credentials(merchantId, new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
+                apiV3Key.getBytes(StandardCharsets.UTF_8));
 
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
@@ -196,16 +200,17 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
 // ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
 
 // 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签，并进行证书自动更新
-HttpClient httpClient = builder.build();
+CloseableHttpClient httpClient = builder.build();
 
 // 后面跟使用Apache HttpClient一样
-HttpResponse response = httpClient.execute(...);
+CloseableHttpResponse response = httpClient.execute(...);
 ```
+
 ### 风险
 
-因为不需要传入微信支付平台证书，AutoUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
+因为不需要传入微信支付平台证书，ScheduledUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
 
-但下载时会通过 **HTTPS**、**AES 对称加密**来保证证书安全，所以可以认为，在使用官方 JDK、且 APIv3 密钥不泄露的情况下，AutoUpdateCertificatesVerifier 是**安全**的。
+但下载时会通过 **HTTPS**、**AES 对称加密**来保证证书安全，所以可以认为，在使用官方 JDK、且 APIv3 密钥不泄露的情况下，ScheduledUpdateCertificatesVerifier 是**安全**的。
 
 ## 敏感信息加解密
 

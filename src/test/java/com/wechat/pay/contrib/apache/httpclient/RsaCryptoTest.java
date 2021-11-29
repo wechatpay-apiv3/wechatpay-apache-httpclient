@@ -7,8 +7,8 @@ import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.junit.Assert.assertTrue;
 
-import com.wechat.pay.contrib.apache.httpclient.auth.AutoUpdateCertificatesVerifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
+import com.wechat.pay.contrib.apache.httpclient.auth.ScheduledUpdateCertificatesVerifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
@@ -36,17 +36,16 @@ public class RsaCryptoTest {
     private static final String wechatPaySerial = ""; // 平台证书序列号
 
     private CloseableHttpClient httpClient;
-    private AutoUpdateCertificatesVerifier verifier;
+    private ScheduledUpdateCertificatesVerifier verifier;
 
     @Before
     public void setup() {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
-        //使用自动更新的签名验证器，不需要传入证书
-        verifier = new AutoUpdateCertificatesVerifier(
+        // 使用定时更新的签名验证器，不需要传入证书
+        verifier = new ScheduledUpdateCertificatesVerifier(
                 new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
                 apiV3Key.getBytes(StandardCharsets.UTF_8));
-
         httpClient = WechatPayHttpClientBuilder.create()
                 .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
                 .withValidator(new WechatPay2Validator(verifier))
@@ -61,8 +60,7 @@ public class RsaCryptoTest {
     @Test
     public void encryptTest() throws Exception {
         String text = "helloworld";
-        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getValidCertificate());
-
+        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getLatestCertificate());
         System.out.println("ciphertext: " + ciphertext);
     }
 
@@ -71,7 +69,7 @@ public class RsaCryptoTest {
         HttpPost httpPost = new HttpPost("https://api.mch.weixin.qq.com/v3/smartguide/guides");
 
         String text = "helloworld";
-        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getValidCertificate());
+        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getLatestCertificate());
 
         String data = "{\n"
                 + "  \"store_id\" : 1234,\n"

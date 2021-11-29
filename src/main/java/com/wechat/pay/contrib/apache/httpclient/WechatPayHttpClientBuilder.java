@@ -53,6 +53,9 @@ public class WechatPayHttpClientBuilder extends HttpClientBuilder {
 
     /**
      * Please use {@link #withWechatPay(List)} instead
+     *
+     * @param certificates 平台证书list
+     * @return 具有验证器的builder
      */
     @SuppressWarnings("SpellCheckingInspection")
     @Deprecated

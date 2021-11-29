@@ -4,10 +4,9 @@ import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-import com.wechat.pay.contrib.apache.httpclient.auth.AutoUpdateCertificatesVerifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
+import com.wechat.pay.contrib.apache.httpclient.auth.ScheduledUpdateCertificatesVerifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
@@ -29,31 +28,25 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-@Deprecated
-public class AutoUpdateVerifierTest {
+public class ScheduledUpdateVerifierTest {
 
     // 你的商户私钥
     private static final String privateKey = "-----BEGIN PRIVATE KEY-----\n"
             + "-----END PRIVATE KEY-----\n";
-    //测试AutoUpdateCertificatesVerifier的verify方法参数
-    private static final String serialNumber = "";
-    private static final String message = "";
-    private static final String signature = "";
     private static final String mchId = ""; // 商户号
     private static final String mchSerialNo = ""; // 商户证书序列号
     private static final String apiV3Key = ""; // API V3密钥
     private CloseableHttpClient httpClient;
-    private AutoUpdateCertificatesVerifier verifier;
+    private ScheduledUpdateCertificatesVerifier verifier;
 
     @Before
     public void setup() {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
-        //使用自动更新的签名验证器，不需要传入证书
-        verifier = new AutoUpdateCertificatesVerifier(
+        // 使用定时更新的签名验证器，不需要传入证书
+        verifier = new ScheduledUpdateCertificatesVerifier(
                 new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
                 apiV3Key.getBytes(StandardCharsets.UTF_8));
-
         httpClient = WechatPayHttpClientBuilder.create()
                 .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
                 .withValidator(new WechatPay2Validator(verifier))
@@ -63,11 +56,6 @@ public class AutoUpdateVerifierTest {
     @After
     public void after() throws IOException {
         httpClient.close();
-    }
-
-    @Test
-    public void autoUpdateVerifierTest() {
-        assertTrue(verifier.verify(serialNumber, message.getBytes(StandardCharsets.UTF_8), signature));
     }
 
     @Test
@@ -89,7 +77,7 @@ public class AutoUpdateVerifierTest {
 
     @Test
     public void uploadImageTest() throws Exception {
-        String filePath = "/your/home/hellokitty.png";
+        String filePath = "/your/home/test.png";
 
         URI uri = new URI("https://api.mch.weixin.qq.com/v3/merchant/media/upload");
 
