@@ -64,10 +64,10 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
 // ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
 
 // 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签
-HttpClient httpClient = builder.build();
+CloseableHttpClient httpClient = builder.build();
 
 // 后面跟使用Apache HttpClient一样
-HttpResponse response = httpClient.execute(...);
+ClosableHttpResponse response = httpClient.execute(...);
 ```
 
 参数说明：
@@ -200,10 +200,10 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
 // ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
 
 // 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签，并进行证书自动更新
-HttpClient httpClient = builder.build();
+CloseableHttpClient httpClient = builder.build();
 
 // 后面跟使用Apache HttpClient一样
-HttpResponse response = httpClient.execute(...);
+CloseableHttpResponse response = httpClient.execute(...);
 ```
 
 ### 风险

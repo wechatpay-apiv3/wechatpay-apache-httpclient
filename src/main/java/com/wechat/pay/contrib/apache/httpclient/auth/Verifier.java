@@ -10,7 +10,7 @@ public interface Verifier {
     boolean verify(String serialNumber, byte[] message, String signature);
 
     /**
-     * 该方法已废弃，请使用 getLatestCertificate 代替
+     * 该方法已废弃，请使用getLatestCertificate代替
      */
     @Deprecated
     X509Certificate getValidCertificate();

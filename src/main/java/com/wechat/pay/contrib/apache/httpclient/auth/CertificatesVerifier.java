@@ -76,7 +76,7 @@ public class CertificatesVerifier implements Verifier {
     public X509Certificate getLatestCertificate() {
         X509Certificate latestCert = null;
         for (X509Certificate x509Cert : certificates.values()) {
-            // 若 latestCert 为空或 x509Cert 的证书有效开始时间在 latestCert 之后，则更新 latestCert
+            // 若latestCert为空或x509Cert的证书有效开始时间在latestCert之后，则更新latestCert
             if (latestCert == null || x509Cert.getNotBefore().after(latestCert.getNotBefore())) {
                 latestCert = x509Cert;
             }

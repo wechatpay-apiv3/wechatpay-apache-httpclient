@@ -6,7 +6,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * 在原有 CertificatesVerifier 基础上，增加定时更新证书功能（默认1小时）
+ * 在原有CertificatesVerifier基础上，增加定时更新证书功能（默认1小时）
  */
 public class ScheduledUpdateCertificatesVerifier implements Verifier {
 
@@ -30,7 +30,7 @@ public class ScheduledUpdateCertificatesVerifier implements Verifier {
      */
     public void initCertManager(Credentials credentials, byte[] apiv3Key) {
         if (credentials == null || apiv3Key.length == 0) {
-            throw new IllegalArgumentException("credentials 或 apiv3Key 为空");
+            throw new IllegalArgumentException("credentials或apiv3Key为空");
         }
         certManagerSingleton.init(credentials, apiv3Key, UPDATE_INTERVAL_MINUTE);
     }
@@ -43,7 +43,7 @@ public class ScheduledUpdateCertificatesVerifier implements Verifier {
     @Override
     public boolean verify(String serialNumber, byte[] message, String signature) {
         if (serialNumber.isEmpty() || message.length == 0 || signature.isEmpty()) {
-            throw new IllegalArgumentException("serialNumber 或 message 或 signature 为空");
+            throw new IllegalArgumentException("serialNumber或message或signature为空");
         }
         if (lock.tryLock()) {
             try {
@@ -68,7 +68,7 @@ public class ScheduledUpdateCertificatesVerifier implements Verifier {
 
 
     /**
-     * 停止定时更新，停止无法再重新启动
+     * 停止定时更新，停止后无法再重新启动
      */
     public void stopScheduledUpdate() {
         certManagerSingleton.close();

@@ -36,11 +36,11 @@ public class CertManagerSingleton {
      * 证书下载地址
      */
     private static final String CERT_DOWNLOAD_PATH = "https://api.mch.weixin.qq.com/v3/certificates";
-    private static final String SCHEDULE_UPDATE_CERT_THREAD_NAME = "schedule_update_cert_thread";
+    private static final String SCHEDULE_UPDATE_CERT_THREAD_NAME = "scheduled_update_cert_thread";
     private volatile static CertManagerSingleton instance = null;
     private byte[] apiV3Key;
     /**
-     * 平台证书 map
+     * 平台证书map
      */
     private ConcurrentHashMap<BigInteger, X509Certificate> certificates;
     private Credentials credentials;
@@ -77,7 +77,7 @@ public class CertManagerSingleton {
      */
     public synchronized void init(Credentials credentials, byte[] apiV3Key, long minutesInterval) {
         if (credentials == null || apiV3Key.length == 0 || minutesInterval == 0) {
-            throw new IllegalArgumentException("credentials 或 apiV3Key 或 minutesInterval 为空");
+            throw new IllegalArgumentException("credentials或apiV3Key或minutesInterval为空");
         }
         if (this.credentials == null || this.apiV3Key.length == 0 || this.executor == null
                 || this.certificates == null) {
@@ -109,7 +109,7 @@ public class CertManagerSingleton {
      */
     public void close() {
         if (executor == null) {
-            throw new IllegalStateException("请先调用 init 方法初始化实例");
+            throw new IllegalStateException("请先调用init方法初始化实例");
         }
         try {
             executor.shutdownNow();
@@ -123,7 +123,7 @@ public class CertManagerSingleton {
      */
     public Map<BigInteger, X509Certificate> getCertificates() {
         if (certificates == null) {
-            throw new IllegalStateException("请先调用 init 方法初始化实例");
+            throw new IllegalStateException("请先调用init方法初始化实例");
         }
         return certificates;
     }
@@ -135,11 +135,11 @@ public class CertManagerSingleton {
      */
     public X509Certificate getLatestCertificate() {
         if (certificates == null) {
-            throw new IllegalStateException("请先调用 init 方法初始化实例");
+            throw new IllegalStateException("请先调用init方法初始化实例");
         }
         X509Certificate latestCert = null;
         for (X509Certificate x509Cert : certificates.values()) {
-            // 若 latestCert 为空或 x509Cert 的证书有效开始时间在 latestCert 之后，则更新 latestCert
+            // 若latestCert为空或x509Cert的证书有效开始时间在latestCert之后，则更新latestCert
             if (latestCert == null || x509Cert.getNotBefore().after(latestCert.getNotBefore())) {
                 latestCert = x509Cert;
             }
