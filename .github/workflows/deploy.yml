@@ -10,20 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
       - name: Regex Match
         id: regex-match
         run: |
           result=$(printf ${{github.ref_name}} | perl -ne 'printf if /^v(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/')
-
           echo "::set-output name=result::$result"
       - name: Check Tag
         if: ${{ steps.regex-match.outputs.result != github.ref_name }}
         uses: actions/github-script@v4
         with:
           script: core.setFailed('Invalid Tag:${{github.ref_name}}')
+
   # Push Tag时自动发布新版本到Maven中央仓库
   publish:
     needs: [check-tag]
