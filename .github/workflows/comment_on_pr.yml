@@ -1,0 +1,17 @@
+name: Comment on Pull Request
+
+on:
+  pull_request:
+
+jobs:
+
+  # pr时自动创建待完成任务
+  comment-on-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: comment PR
+        uses: unsplash/comment-on-pr@v1.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          msg: "请完成以下事项：\n - [ ] 更新build.gradle中的version "
