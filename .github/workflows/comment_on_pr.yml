@@ -4,11 +4,13 @@ on:
   pull_request:
 
 jobs:
-
   # pr时自动创建待完成任务
   comment-on-pr:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
+      - uses: actions/checkout@v2
       - name: comment PR
         uses: unsplash/comment-on-pr@v1.3.0
         env:
