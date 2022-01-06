@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 public class CertificatesManager {
 
     private static final Logger log = LoggerFactory.getLogger(CertificatesManager.class);
-    protected static final int UPDATE_INTERVAL_MINUTE = 60;
+    protected static final int UPDATE_INTERVAL_MINUTE = 1440;
     /**
      * 证书下载地址
      */

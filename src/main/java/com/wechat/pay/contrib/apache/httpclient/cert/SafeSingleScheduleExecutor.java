@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class SafeSingleScheduleExecutor extends ScheduledThreadPoolExecutor {
 
-    private static final int MAX_QUEUE_CAPACITY = 100;
+    private static final int MAX_QUEUE_CAPACITY = 1;
     private static final int MAXIMUM_POOL_SIZE = 1;
     private static final int CORE_POOL_SIZE = 1;
 
