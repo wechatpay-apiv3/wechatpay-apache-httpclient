@@ -9,6 +9,7 @@ import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 import com.wechat.pay.contrib.apache.httpclient.auth.Verifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.exception.HttpCodeException;
+import com.wechat.pay.contrib.apache.httpclient.exception.NotFoundException;
 import com.wechat.pay.contrib.apache.httpclient.util.CertSerializeUtil;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -17,10 +18,13 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +81,8 @@ public class CertificatesManager {
             ConcurrentHashMap<BigInteger, X509Certificate> merchantCertificates = certificates.get(merchantId);
             X509Certificate certificate = merchantCertificates.get(serialNumber16Radix);
             if (certificate == null) {
-                throw new RuntimeException("商户证书为空，serialNumber:" + serialNumber);
+                log.error("商户证书为空，serialNumber:{}", serialNumber);
+                return false;
             }
             try {
                 Signature sign = Signature.getInstance("SHA256withRSA");
@@ -100,9 +105,14 @@ public class CertificatesManager {
 
         @Override
         public X509Certificate getLatestCertificate() {
-            return CertificatesManager.this.getLatestCertificate(merchantId);
+            X509Certificate certificate;
+            try {
+                certificate = CertificatesManager.this.getLatestCertificate(merchantId);
+            } catch (NotFoundException e) {
+                throw new NoSuchElementException("没有最新的平台证书，merchantId:");
+            }
+            return certificate;
         }
-
     }
 
     private CertificatesManager() {
@@ -141,13 +151,12 @@ public class CertificatesManager {
             throw new IllegalArgumentException("apiV3Key为空");
         }
         // 添加或更新商户信息
-        credentialsMap.put(merchantId, credentials);
-        apiV3Keys.put(merchantId, apiV3Key);
         if (certificates.get(merchantId) == null) {
             certificates.put(merchantId, new ConcurrentHashMap<>());
         }
         initCertificates(merchantId, credentials, apiV3Key);
-
+        credentialsMap.put(merchantId, credentials);
+        apiV3Keys.put(merchantId, apiV3Key);
         // 若没有executor，则启动定时更新证书任务
         if (executor == null) {
             beginScheduleUpdate();
@@ -167,10 +176,14 @@ public class CertificatesManager {
         }
     }
 
-    public X509Certificate getLatestCertificate(String merchantId) {
+    public X509Certificate getLatestCertificate(String merchantId)
+            throws NotFoundException {
+        if (merchantId == null || merchantId.isEmpty()) {
+            throw new IllegalArgumentException("merchantId为空");
+        }
         Map<BigInteger, X509Certificate> merchantCertificates = certificates.get(merchantId);
-        if (certificates == null) {
-            throw new IllegalStateException("请先调用putMerchant方法增加商户信息");
+        if (merchantCertificates == null || merchantCertificates.isEmpty()) {
+            throw new NotFoundException("没有最新的平台证书，merchantId:" + merchantId);
         }
         X509Certificate latestCert = null;
         for (X509Certificate x509Cert : merchantCertificates.values()) {
@@ -179,7 +192,13 @@ public class CertificatesManager {
                 latestCert = x509Cert;
             }
         }
-        return latestCert;
+        try {
+            latestCert.checkValidity();
+            return latestCert;
+        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+            log.error("平台证书未生效或已过期，merchantId:{}", merchantId);
+        }
+        throw new NotFoundException("没有最新的平台证书，merchantId:" + merchantId);
     }
 
     /**
@@ -188,7 +207,7 @@ public class CertificatesManager {
      * @param merchantId 商户号
      * @return verifier
      */
-    public Verifier getVerifier(String merchantId) {
+    public Verifier getVerifier(String merchantId) throws NotFoundException {
         // 若商户信息不存在，返回错误
         ConcurrentHashMap<BigInteger, X509Certificate> merchantCertificates = certificates.get(merchantId);
         byte[] apiV3Key = apiV3Keys.get(merchantId);
@@ -197,13 +216,14 @@ public class CertificatesManager {
             throw new IllegalArgumentException("merchantId为空");
         }
         if (merchantCertificates == null || merchantCertificates.size() == 0) {
-            throw new IllegalArgumentException("平台证书为空");
+            throw new NotFoundException("平台证书为空，merchantId:" + merchantId);
         }
         if (apiV3Key.length == 0) {
-            throw new IllegalArgumentException("apiV3Key为空");
+            throw new NotFoundException("apiV3Key为空，merchantId:" + merchantId);
+
         }
         if (credentials == null) {
-            throw new IllegalArgumentException("credentials为空");
+            throw new NotFoundException("credentials为空，merchantId:" + merchantId);
         }
         return new DefaultVerifier(merchantId);
     }
