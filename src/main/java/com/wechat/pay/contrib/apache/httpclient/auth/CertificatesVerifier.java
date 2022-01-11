@@ -62,18 +62,6 @@ public class CertificatesVerifier implements Verifier {
 
     @Override
     public X509Certificate getValidCertificate() {
-        for (X509Certificate x509Cert : certificates.values()) {
-            try {
-                x509Cert.checkValidity();
-                return x509Cert;
-            } catch (CertificateExpiredException | CertificateNotYetValidException ignored) {
-            }
-        }
-        throw new NoSuchElementException("没有有效的微信支付平台证书");
-    }
-
-    @Override
-    public X509Certificate getLatestCertificate() {
         X509Certificate latestCert = null;
         for (X509Certificate x509Cert : certificates.values()) {
             // 若latestCert为空或x509Cert的证书有效开始时间在latestCert之后，则更新latestCert
@@ -81,7 +69,12 @@ public class CertificatesVerifier implements Verifier {
                 latestCert = x509Cert;
             }
         }
-        return latestCert;
+        try {
+            latestCert.checkValidity();
+            return latestCert;
+        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+            throw new NoSuchElementException("没有有效的微信支付平台证书");
+        }
     }
 }
 

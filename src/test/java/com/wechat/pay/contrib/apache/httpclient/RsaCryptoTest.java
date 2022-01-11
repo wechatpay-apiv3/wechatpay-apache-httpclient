@@ -8,6 +8,7 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.junit.Assert.assertTrue;
 
 import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
+import com.wechat.pay.contrib.apache.httpclient.auth.Verifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.cert.CertificatesManager;
@@ -37,7 +38,7 @@ public class RsaCryptoTest {
 
     private CloseableHttpClient httpClient;
     private CertificatesManager certificatesManager;
-
+    private Verifier verifier;
 
     @Before
     public void setup() throws Exception {
@@ -48,6 +49,7 @@ public class RsaCryptoTest {
         certificatesManager.putMerchant(mchId, new WechatPay2Credentials(mchId,
                 new PrivateKeySigner(mchSerialNo, merchantPrivateKey)), apiV3Key.getBytes(StandardCharsets.UTF_8));
         // 从证书管理器中获取verifier
+        verifier = certificatesManager.getVerifier(mchId);
         httpClient = WechatPayHttpClientBuilder.create()
                 .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
                 .withValidator(new WechatPay2Validator(certificatesManager.getVerifier(mchId)))
@@ -62,7 +64,8 @@ public class RsaCryptoTest {
     @Test
     public void encryptTest() throws Exception {
         String text = "helloworld";
-        String ciphertext = RsaCryptoUtil.encryptOAEP(text, certificatesManager.getLatestCertificate(mchId));
+        String ciphertext = RsaCryptoUtil
+                .encryptOAEP(text, verifier.getValidCertificate());
         System.out.println("ciphertext: " + ciphertext);
     }
 
@@ -71,7 +74,8 @@ public class RsaCryptoTest {
         HttpPost httpPost = new HttpPost("https://api.mch.weixin.qq.com/v3/smartguide/guides");
 
         String text = "helloworld";
-        String ciphertext = RsaCryptoUtil.encryptOAEP(text, certificatesManager.getLatestCertificate(mchId));
+        String ciphertext = RsaCryptoUtil
+                .encryptOAEP(text, verifier.getValidCertificate());
 
         String data = "{\n"
                 + "  \"store_id\" : 1234,\n"

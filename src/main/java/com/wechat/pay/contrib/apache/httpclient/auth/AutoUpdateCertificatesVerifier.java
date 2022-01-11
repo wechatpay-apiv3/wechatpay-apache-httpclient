@@ -98,11 +98,6 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         return verifier.getValidCertificate();
     }
 
-    @Override
-    public X509Certificate getLatestCertificate() {
-        return verifier.getLatestCertificate();
-    }
-
     protected void autoUpdateCert() throws IOException, GeneralSecurityException {
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(credentials)
