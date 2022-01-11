@@ -100,16 +100,11 @@ public class CertificatesManager {
 
         @Override
         public X509Certificate getValidCertificate() {
-            return null;
-        }
-
-        @Override
-        public X509Certificate getLatestCertificate() {
             X509Certificate certificate;
             try {
                 certificate = CertificatesManager.this.getLatestCertificate(merchantId);
             } catch (NotFoundException e) {
-                throw new NoSuchElementException("没有最新的平台证书，merchantId:");
+                throw new NoSuchElementException("没有有效的微信支付平台证书");
             }
             return certificate;
         }
@@ -176,7 +171,7 @@ public class CertificatesManager {
         }
     }
 
-    public X509Certificate getLatestCertificate(String merchantId)
+    private X509Certificate getLatestCertificate(String merchantId)
             throws NotFoundException {
         if (merchantId == null || merchantId.isEmpty()) {
             throw new IllegalArgumentException("merchantId为空");
@@ -205,7 +200,8 @@ public class CertificatesManager {
      * 获取商户号为merchantId的验签器
      *
      * @param merchantId 商户号
-     * @return verifier
+     * @return 验签器
+     * @throws NotFoundException merchantId/merchantCertificates/apiV3Key/credentials为空
      */
     public Verifier getVerifier(String merchantId) throws NotFoundException {
         // 若商户信息不存在，返回错误
