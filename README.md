@@ -27,7 +27,7 @@
 在你的`build.gradle`文件中加入如下的依赖
 
 ```groovy
-implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.3.0'
+implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.4.0'
 ```
 
 ### Maven
@@ -37,7 +37,7 @@ implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.3.0'
 <dependency>
     <groupId>com.github.wechatpay-apiv3</groupId>
     <artifactId>wechatpay-apache-httpclient</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
