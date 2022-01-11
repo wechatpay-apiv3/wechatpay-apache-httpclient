@@ -8,13 +8,11 @@
 
 ## 项目状态
 
-当前版本`0.3.0`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.4.0`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
 
 ## 升级指引
 
-版本`0.3.0`提供了更可靠的[定时更新平台证书功能](#定时更新平台证书功能)。若你使用了自动更新证书功能，推荐升级并使用新的`ScheduledUpdateCertificatesVerifier`替换`AutoUpdateCertificatesVerifier`。
-
-注：`Verifier`接口新增了`getLatestCertificate()`方法。若你通过实现`Verifier`接口自定义了验签器，升级后需实现该方法。
+若你使用的版本为`0.3.0`，升级前请参考[升级指南](UPGRADING.md)。
 
 ## 环境要求
 
@@ -184,16 +182,19 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
 
 ## 定时更新平台证书功能
 
-版本>=`0.3.0`可使用 ScheduledUpdateCertificatesVerifier 类替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认为1小时）。
+版本>=`0.4.0`可使用 CertificatesManager.getVerifier(mchId) 得到的验签器替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认下载间隔为UPDATE_INTERVAL_MINUTE）。
 
 示例代码：
-
 ```java
-// 使用定时更新的签名验证器，不需要传入证书
-verifier = new ScheduledUpdateCertificatesVerifier(
-                new WechatPay2Credentials(merchantId, new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
-                apiV3Key.getBytes(StandardCharsets.UTF_8));
+// 获取证书管理器实例
+certificatesManager = CertificatesManager.getInstance();
+// 向证书管理器增加需要自动更新平台证书的商户信息
+certificatesManager.putMerchant(mchId, new WechatPay2Credentials(mchId,
+            new PrivateKeySigner(mchSerialNo, merchantPrivateKey)), apiV3Key.getBytes(StandardCharsets.UTF_8));
+// ... 若有多个商户号，可继续调用putMerchant添加商户信息
 
+// 从证书管理器中获取verifier
+verifier = certificatesManager.getVerifier(mchId);
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
         .withValidator(new WechatPay2Validator(verifier))
@@ -208,9 +209,9 @@ CloseableHttpResponse response = httpClient.execute(...);
 
 ### 风险
 
-因为不需要传入微信支付平台证书，ScheduledUpdateCertificatesVerifier 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
+因为不需要传入微信支付平台证书，CertificatesManager 在首次更新证书时**不会验签**，也就无法确认应答身份，可能导致下载错误的证书。
 
-但下载时会通过 **HTTPS**、**AES 对称加密**来保证证书安全，所以可以认为，在使用官方 JDK、且 APIv3 密钥不泄露的情况下，ScheduledUpdateCertificatesVerifier 是**安全**的。
+但下载时会通过 **HTTPS**、**AES 对称加密**来保证证书安全，所以可以认为，在使用官方 JDK、且 APIv3 密钥不泄露的情况下，CertificatesManager 是**安全**的。
 
 ## 敏感信息加解密
 

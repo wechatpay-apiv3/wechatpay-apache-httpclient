@@ -6,9 +6,10 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.junit.Assert.assertEquals;
 
 import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
-import com.wechat.pay.contrib.apache.httpclient.auth.ScheduledUpdateCertificatesVerifier;
+import com.wechat.pay.contrib.apache.httpclient.auth.Verifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
+import com.wechat.pay.contrib.apache.httpclient.cert.CertificatesManager;
 import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,25 +29,32 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ScheduledUpdateVerifierTest {
+public class CertificatesManagerTest {
 
     // 你的商户私钥
     private static final String privateKey = "-----BEGIN PRIVATE KEY-----\n"
             + "-----END PRIVATE KEY-----\n";
+    private static final String serialNumber = "";
+    private static final String message = "";
+    private static final String signature = "";
     private static final String mchId = ""; // 商户号
     private static final String mchSerialNo = ""; // 商户证书序列号
     private static final String apiV3Key = ""; // API V3密钥
     private CloseableHttpClient httpClient;
-    private ScheduledUpdateCertificatesVerifier verifier;
+    CertificatesManager certificatesManager;
+    Verifier verifier;
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
-
-        // 使用定时更新的签名验证器，不需要传入证书
-        verifier = new ScheduledUpdateCertificatesVerifier(
-                new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
-                apiV3Key.getBytes(StandardCharsets.UTF_8));
+        // 获取证书管理器实例
+        certificatesManager = CertificatesManager.getInstance();
+        // 向证书管理器增加需要自动更新平台证书的商户信息
+        certificatesManager.putMerchant(mchId, new WechatPay2Credentials(mchId,
+                new PrivateKeySigner(mchSerialNo, merchantPrivateKey)), apiV3Key.getBytes(StandardCharsets.UTF_8));
+        // 从证书管理器中获取verifier
+        verifier = certificatesManager.getVerifier(mchId);
+        // 构造httpclient
         httpClient = WechatPayHttpClientBuilder.create()
                 .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
                 .withValidator(new WechatPay2Validator(verifier))
