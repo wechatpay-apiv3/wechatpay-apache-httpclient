@@ -108,4 +108,30 @@ public class CertificatesManagerTest {
             }
         }
     }
+
+    @Test
+    public void uploadFileTest() throws Exception {
+        String filePath = "/your/home/test.png";
+
+        URI uri = new URI("https://api.mch.weixin.qq.com/v3/merchant/media/upload");
+
+        File file = new File(filePath);
+        try (FileInputStream fileIs = new FileInputStream(file)) {
+            String sha256 = DigestUtils.sha256Hex(fileIs);
+            String meta = String.format("{\"filename\":\"%s\",\"sha256\":\"%s\"}", file.getName(), sha256);
+            try (InputStream is = new FileInputStream(file)) {
+                WechatPayUploadHttpPost request = new WechatPayUploadHttpPost.Builder(uri)
+                        .withFile(file.getName(), meta, is)
+                        .build();
+                try (CloseableHttpResponse response = httpClient.execute(request)) {
+                    assertEquals(SC_OK, response.getStatusLine().getStatusCode());
+                    HttpEntity entity = response.getEntity();
+                    // do something useful with the response body
+                    // and ensure it is fully consumed
+                    String s = EntityUtils.toString(entity);
+                    System.out.println(s);
+                }
+            }
+        }
+    }
 }
