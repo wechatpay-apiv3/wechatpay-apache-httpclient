@@ -31,12 +31,14 @@ public class WechatPayUploadHttpPost extends HttpPost {
 
         private final URI uri;
         private String fileName;
-        private String fileSha256;
         private InputStream fileInputStream;
         private ContentType fileContentType;
         private String meta;
 
         public Builder(URI uri) {
+            if (uri == null) {
+                throw new IllegalArgumentException("缺少上传图片接口URL");
+            }
             this.uri = uri;
         }
 
@@ -52,7 +54,6 @@ public class WechatPayUploadHttpPost extends HttpPost {
             }
 
             this.fileName = fileName;
-            this.fileSha256 = fileSha256;
             this.fileInputStream = inputStream;
             setFileContentType(fileName);
             this.meta = String.format("{\"filename\":\"%s\",\"sha256\":\"%s\"}", fileName, fileSha256);
@@ -87,10 +88,6 @@ public class WechatPayUploadHttpPost extends HttpPost {
         }
 
         public WechatPayUploadHttpPost build() {
-            if (uri == null) {
-                throw new IllegalArgumentException("缺少上传图片接口URL");
-            }
-
             WechatPayUploadHttpPost request = new WechatPayUploadHttpPost(uri, meta);
 
             MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
