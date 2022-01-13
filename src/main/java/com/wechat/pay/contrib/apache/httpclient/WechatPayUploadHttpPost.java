@@ -37,7 +37,7 @@ public class WechatPayUploadHttpPost extends HttpPost {
 
         public Builder(URI uri) {
             if (uri == null) {
-                throw new IllegalArgumentException("缺少上传图片接口URL");
+                throw new IllegalArgumentException("上传文件接口URL为空");
             }
             this.uri = uri;
         }
@@ -88,6 +88,9 @@ public class WechatPayUploadHttpPost extends HttpPost {
         }
 
         public WechatPayUploadHttpPost build() {
+            if (meta == null || meta.isEmpty()) {
+                throw new IllegalArgumentException("媒体文件元信息为空");
+            }
             WechatPayUploadHttpPost request = new WechatPayUploadHttpPost(uri, meta);
 
             MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
