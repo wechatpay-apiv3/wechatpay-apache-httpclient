@@ -31,19 +31,28 @@ public class WechatPayUploadHttpPost extends HttpPost {
 
         private final URI uri;
         private String fileName;
-        private String fileSha256;
         private InputStream fileInputStream;
         private ContentType fileContentType;
+        private String meta;
 
         public Builder(URI uri) {
+            if (uri == null) {
+                throw new IllegalArgumentException("上传文件接口URL为空");
+            }
             this.uri = uri;
         }
 
         public Builder withImage(String fileName, String fileSha256, InputStream inputStream) {
-            this.fileName = fileName;
-            this.fileSha256 = fileSha256;
-            this.fileInputStream = inputStream;
+            if (fileSha256 == null || fileSha256.isEmpty()) {
+                throw new IllegalArgumentException("文件摘要为空");
+            }
+            meta = String.format("{\"filename\":\"%s\",\"sha256\":\"%s\"}", fileName, fileSha256);
+            return withFile(fileName, meta, inputStream);
+        }
 
+        public Builder withFile(String fileName, String meta, InputStream inputStream) {
+            this.fileName = fileName;
+            this.fileInputStream = inputStream;
             String mimeType = URLConnection.guessContentTypeFromName(fileName);
             if (mimeType == null) {
                 // guess this is a video uploading
@@ -51,29 +60,30 @@ public class WechatPayUploadHttpPost extends HttpPost {
             } else {
                 this.fileContentType = ContentType.create(mimeType);
             }
+            this.meta = meta;
             return this;
         }
 
         public WechatPayUploadHttpPost build() {
-            if (fileName == null || fileSha256 == null || fileInputStream == null) {
-                throw new IllegalArgumentException("缺少待上传图片文件信息");
+            if (fileName == null || fileName.isEmpty()) {
+                throw new IllegalArgumentException("文件名称为空");
             }
-
-            if (uri == null) {
-                throw new IllegalArgumentException("缺少上传图片接口URL");
+            if (fileInputStream == null) {
+                throw new IllegalArgumentException("文件为空");
             }
-
-            String meta = String.format("{\"filename\":\"%s\",\"sha256\":\"%s\"}", fileName, fileSha256);
+            if (fileContentType == null) {
+                throw new IllegalArgumentException("文件类型为空");
+            }
+            if (meta == null || meta.isEmpty()) {
+                throw new IllegalArgumentException("媒体文件元信息为空");
+            }
             WechatPayUploadHttpPost request = new WechatPayUploadHttpPost(uri, meta);
-
             MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
             entityBuilder.setMode(HttpMultipartMode.RFC6532)
                     .addBinaryBody("file", fileInputStream, fileContentType, fileName)
                     .addTextBody("meta", meta, APPLICATION_JSON);
-
             request.setEntity(entityBuilder.build());
             request.addHeader(ACCEPT, APPLICATION_JSON.toString());
-
             return request;
         }
     }
