@@ -51,15 +51,6 @@ public class WechatPayUploadHttpPost extends HttpPost {
         }
 
         public Builder withFile(String fileName, String meta, InputStream inputStream) {
-            if (fileName == null || fileName.isEmpty()) {
-                throw new IllegalArgumentException("文件名称为空");
-            }
-            if (meta == null) {
-                throw new IllegalArgumentException("媒体文件元信息为空");
-            }
-            if (inputStream == null) {
-                throw new IllegalArgumentException("文件为空");
-            }
             this.fileName = fileName;
             this.fileInputStream = inputStream;
             String mimeType = URLConnection.guessContentTypeFromName(fileName);
@@ -74,11 +65,19 @@ public class WechatPayUploadHttpPost extends HttpPost {
         }
 
         public WechatPayUploadHttpPost build() {
+            if (fileName == null || fileName.isEmpty()) {
+                throw new IllegalArgumentException("文件名称为空");
+            }
+            if (fileInputStream == null) {
+                throw new IllegalArgumentException("文件为空");
+            }
+            if (fileContentType == null) {
+                throw new IllegalArgumentException("文件类型为空");
+            }
             if (meta == null || meta.isEmpty()) {
                 throw new IllegalArgumentException("媒体文件元信息为空");
             }
             WechatPayUploadHttpPost request = new WechatPayUploadHttpPost(uri, meta);
-
             MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
             entityBuilder.setMode(HttpMultipartMode.RFC6532)
                     .addBinaryBody("file", fileInputStream, fileContentType, fileName)
