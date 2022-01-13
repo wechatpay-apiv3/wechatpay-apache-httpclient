@@ -8,7 +8,7 @@
 
 ## 项目状态
 
-当前版本`0.4.0`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.4.1`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
 
 ## 升级指引
 
@@ -27,7 +27,7 @@
 在你的`build.gradle`文件中加入如下的依赖
 
 ```groovy
-implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.4.0'
+implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.4.1'
 ```
 
 ### Maven
@@ -37,7 +37,7 @@ implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.4.0'
 <dependency>
     <groupId>com.github.wechatpay-apiv3</groupId>
     <artifactId>wechatpay-apache-httpclient</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
 </dependency>
 ```
 
@@ -246,7 +246,7 @@ try {
 
 我们对上传的参数组装和签名逻辑进行了一定的封装，只需要以下几步：
 
-1. 使用`WechatPayUploadHttpPost`构造一个上传的`HttpPost`，需设置待上传文件的文件名，SHA256摘要，文件的输入流。
+1. 使用`WechatPayUploadHttpPost`构造一个上传的`HttpPost`，需设置待上传文件的文件名，SHA256摘要，文件的输入流。在`0.4.1`及以上版本，支持设置媒体文件元信息。
 2. 通过`WechatPayHttpClientBuilder`得到的`HttpClient`发送请求。
 
 示例请参考下列代码。
@@ -260,6 +260,7 @@ try (FileInputStream ins1 = new FileInputStream(file)) {
   String sha256 = DigestUtils.sha256Hex(ins1);
   try (InputStream ins2 = new FileInputStream(file)) {
     HttpPost request = new WechatPayUploadHttpPost.Builder(uri)
+// 如需直接设置媒体文件元信息，可使用withFile代替withImage
         .withImage(file.getName(), sha256, ins2)
         .build();
     CloseableHttpResponse response1 = httpClient.execute(request);
