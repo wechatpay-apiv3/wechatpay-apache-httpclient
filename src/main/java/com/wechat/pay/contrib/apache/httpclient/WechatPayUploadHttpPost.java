@@ -43,21 +43,11 @@ public class WechatPayUploadHttpPost extends HttpPost {
         }
 
         public Builder withImage(String fileName, String fileSha256, InputStream inputStream) {
-            if (fileName == null || fileName.isEmpty()) {
-                throw new IllegalArgumentException("文件名称为空");
-            }
             if (fileSha256 == null || fileSha256.isEmpty()) {
                 throw new IllegalArgumentException("文件摘要为空");
             }
-            if (inputStream == null) {
-                throw new IllegalArgumentException("图片文件为空");
-            }
-
-            this.fileName = fileName;
-            this.fileInputStream = inputStream;
-            setFileContentType(fileName);
-            this.meta = String.format("{\"filename\":\"%s\",\"sha256\":\"%s\"}", fileName, fileSha256);
-            return this;
+            meta = String.format("{\"filename\":\"%s\",\"sha256\":\"%s\"}", fileName, fileSha256);
+            return withFile(fileName, meta, inputStream);
         }
 
         public Builder withFile(String fileName, String meta, InputStream inputStream) {
@@ -72,12 +62,6 @@ public class WechatPayUploadHttpPost extends HttpPost {
             }
             this.fileName = fileName;
             this.fileInputStream = inputStream;
-            setFileContentType(fileName);
-            this.meta = meta;
-            return this;
-        }
-
-        private void setFileContentType(String fileName) {
             String mimeType = URLConnection.guessContentTypeFromName(fileName);
             if (mimeType == null) {
                 // guess this is a video uploading
@@ -85,6 +69,8 @@ public class WechatPayUploadHttpPost extends HttpPost {
             } else {
                 this.fileContentType = ContentType.create(mimeType);
             }
+            this.meta = meta;
+            return this;
         }
 
         public WechatPayUploadHttpPost build() {
