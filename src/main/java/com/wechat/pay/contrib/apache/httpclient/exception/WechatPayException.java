@@ -10,4 +10,9 @@ public abstract class WechatPayException extends Exception {
     public WechatPayException(String message) {
         super(message);
     }
+
+    public WechatPayException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }
