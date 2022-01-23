@@ -8,7 +8,7 @@
 
 ## 项目状态
 
-当前版本`0.4.1`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.4.2`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
 
 ## 升级指引
 
@@ -27,7 +27,7 @@
 在你的`build.gradle`文件中加入如下的依赖
 
 ```groovy
-implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.4.1'
+implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.4.2'
 ```
 
 ### Maven
@@ -37,7 +37,7 @@ implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.4.1'
 <dependency>
     <groupId>com.github.wechatpay-apiv3</groupId>
     <artifactId>wechatpay-apache-httpclient</artifactId>
-    <version>0.4.1</version>
+    <version>0.4.2</version>
 </dependency>
 ```
 
@@ -269,6 +269,35 @@ try (FileInputStream ins1 = new FileInputStream(file)) {
 ```
 
 [AutoUpdateVerifierTest.uploadImageTest](/src/test/java/com/wechat/pay/contrib/apache/httpclient/AutoUpdateVerifierTest.java#90)是一个更完整的示例。
+
+## 回调通知的验签与解密
+版本>=`0.4.2`可使用 `NotificationHandler.parse(request)` 对回调通知验签和解密：
+
+1. 使用`NotificationRequest`构造一个回调通知请求体，需设置应答平台证书序列号、应答随机串、应答时间戳、应答签名串、应答主体。
+2. 使用`NotificationHandler`构造一个回调通知处理器，需设置验证器、apiV3密钥。调用`parse(request)`得到回调通知`notification`。
+
+示例请参考下列代码。
+```java
+// 构建request，传入必要参数
+ NotificationRequest request = new NotificationRequest.Builder().withSerialNumber(wechatPaySerial)
+        .withNonce(nonce)
+        .withTimestamp(timestamp)
+        .withSignature(signature)
+        .withBody(body)
+        .build();
+NotificationHandler handler = new NotificationHandler(verifier, apiV3Key.getBytes(StandardCharsets.UTF_8));
+// 验签和解析请求体
+Notification notification = handler.parse(request);
+// 从notification中获取解密报文
+System.out.println(nottDecryptData());
+```
+
+[NotificationHandlerTest](src/test/java/com/wechat/pay/contrib/apache/httpclient/NotificationHandlerTest.java#105)是一个更完整的示例。
+
+### 异常处理
+`parse(request)`可能返回以下异常，推荐对异常打日志或上报监控。
+- 抛出`ValidationException`时，请先检查传入参数是否与回调通知参数一致。若一致，说明参数可能被恶意篡改导致验签失败。
+- 抛出`ParseException`时，请先检查传入包体是否与回调通知包体一致。若一致，请检查AES密钥是否正确设置。若正确，说明包体可能被恶意篡改导致解析失败。
 
 ## 常见问题
 
