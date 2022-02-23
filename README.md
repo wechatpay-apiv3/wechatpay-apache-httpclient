@@ -289,7 +289,7 @@ NotificationHandler handler = new NotificationHandler(verifier, apiV3Key.getByte
 // 验签和解析请求体
 Notification notification = handler.parse(request);
 // 从notification中获取解密报文
-System.out.println(nottDecryptData());
+System.out.println(notification.getDecryptData());
 ```
 
 [NotificationHandlerTest](src/test/java/com/wechat/pay/contrib/apache/httpclient/NotificationHandlerTest.java#105)是一个更完整的示例。
