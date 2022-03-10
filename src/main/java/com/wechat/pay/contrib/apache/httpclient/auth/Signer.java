@@ -12,6 +12,14 @@ public interface Signer {
         protected final String sign;
         protected final String certificateSerialNumber;
 
+        public String getSign() {
+            return sign;
+        }
+
+        public String getCertificateSerialNumber() {
+            return certificateSerialNumber;
+        }
+
         public SignatureResult(String sign, String serialNumber) {
             this.sign = sign;
             this.certificateSerialNumber = serialNumber;
