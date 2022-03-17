@@ -5,7 +5,7 @@ package com.wechat.pay.contrib.apache.httpclient.notification;
  *
  * @author lianup
  */
-interface Request {
+public interface Request {
 
     /**
      * 获取请求头Wechatpay-Serial
