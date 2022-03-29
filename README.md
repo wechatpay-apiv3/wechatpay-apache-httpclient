@@ -359,6 +359,34 @@ dependencies {
 }
 ```
 
+### 如何解决Jackson兼容性问题
+
+在之前的版本中，我们出于安全考虑升级 Jackson 到`2.12`，并使用了`2.11`版本中新增的方法`readValue(String src, Class<T> valueType)`。如果你的项目所依赖的其他组件又依赖了低于`2.11`版本的 Jackson ，可能会出现依赖冲突。
+
+我们建议有能力的开发者，升级冲突组件至较新的兼容版本。例如，issue [#125](https://github.com/wechatpay-apiv3/wechatpay-apache-httpclient/issues/125) 版本 <`2.3.x` 的 SpringBoot 官方已不再维护，继续使用可能会有安全隐患。
+
+如果难以升级，你可以使用下面的方式指定 Jackson 版本。
+
+#### Gradle
+```groovy
+implementation('com.fasterxml.jackson.core:jackson-databind') {
+	version {
+		strictly '2.12.5'
+	}
+}
+```
+#### Maven
+```xml
+<dependencyManagement>
+   <dependencies>
+       <dependency>
+           <groupId>com.fasterxml.jackson.core</groupId>
+           <artifactId>jackson-databind</artifactId>
+           <version>2.12.5</version>
+       </dependency>
+   </dependencies>
+</dependencyManagement>
+```
 ### 更多常见问题
 
 请看商户平台的[常见问题](https://pay.weixin.qq.com/wiki/doc/apiv3_partner/wechatpay/wechatpay7_0.shtml)，或者[这里](https://wechatpay-api.gitbook.io/wechatpay-api-v3/chang-jian-wen-ti)。
