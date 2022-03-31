@@ -6,10 +6,13 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLConnection;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author xy-peng
@@ -17,6 +20,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 public class WechatPayUploadHttpPost extends HttpPost {
 
     private final String meta;
+    private static final Logger log = LoggerFactory.getLogger(WechatPayUploadHttpPost.class);
 
     private WechatPayUploadHttpPost(URI uri, String meta) {
         super(uri);
@@ -80,10 +84,12 @@ public class WechatPayUploadHttpPost extends HttpPost {
             WechatPayUploadHttpPost request = new WechatPayUploadHttpPost(uri, meta);
             MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
             entityBuilder.setMode(HttpMultipartMode.RFC6532)
-                    .addBinaryBody("file", fileInputStream, fileContentType, fileName)
-                    .addTextBody("meta", meta, APPLICATION_JSON);
-            request.setEntity(entityBuilder.build());
+                    .addTextBody("meta", meta, APPLICATION_JSON)
+                    .addBinaryBody("file", fileInputStream, fileContentType, fileName);
+            HttpEntity entity = entityBuilder.build();
+            request.setEntity(entity);
             request.addHeader(ACCEPT, APPLICATION_JSON.toString());
+            log.debug("request content-type[{}]", entity.getContentType());
             return request;
         }
     }
