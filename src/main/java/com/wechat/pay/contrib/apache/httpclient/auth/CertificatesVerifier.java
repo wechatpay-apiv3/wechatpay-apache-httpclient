@@ -13,12 +13,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author xy-peng
  */
 public class CertificatesVerifier implements Verifier {
 
+    private static final Logger log = LoggerFactory.getLogger(CertificatesVerifier.class);
     protected final HashMap<BigInteger, X509Certificate> certificates = new HashMap<>();
 
     public CertificatesVerifier(List<X509Certificate> list) {
@@ -57,7 +60,11 @@ public class CertificatesVerifier implements Verifier {
     public boolean verify(String serialNumber, byte[] message, String signature) {
         BigInteger val = new BigInteger(serialNumber, 16);
         X509Certificate cert = certificates.get(val);
-        return cert != null && verify(cert, message, signature);
+        if (cert == null) {
+            log.error("找不到证书序列号对应的证书，序列号：{}", serialNumber);
+            return false;
+        }
+        return verify(cert, message, signature);
     }
 
     @Override

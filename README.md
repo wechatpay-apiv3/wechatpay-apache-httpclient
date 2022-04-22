@@ -65,7 +65,7 @@ WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
 CloseableHttpClient httpClient = builder.build();
 
 // 后面跟使用Apache HttpClient一样
-ClosableHttpResponse response = httpClient.execute(...);
+CloseableHttpResponse response = httpClient.execute(...);
 ```
 
 参数说明：
