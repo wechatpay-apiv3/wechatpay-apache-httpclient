@@ -1,5 +1,6 @@
 package com.wechat.pay.contrib.apache.httpclient.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,5 +66,10 @@ public class PemUtil {
         } catch (CertificateException e) {
             throw new RuntimeException("无效的证书", e);
         }
+    }
+
+    public static X509Certificate loadCertificate(String certificate){
+        InputStream certStream = new ByteArrayInputStream(certificate.getBytes());
+        return loadCertificate(certStream);
     }
 }

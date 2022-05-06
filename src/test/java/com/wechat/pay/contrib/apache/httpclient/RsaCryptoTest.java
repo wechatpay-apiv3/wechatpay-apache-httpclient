@@ -5,6 +5,7 @@ import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
@@ -27,13 +28,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.management.PersistentMBean;
+
 public class RsaCryptoTest {
 
     private static final String mchId = ""; // 商户号
     private static final String mchSerialNo = ""; // 商户证书序列号
     private static final String apiV3Key = ""; // API V3密钥
-    private static final String privateKey = "-----BEGIN PRIVATE KEY-----\n"
-            + "-----END PRIVATE KEY-----\n"; // 商户API V3私钥
+    private static final String privateKey = "";
+    private static final String merchantCert = "";
     private static final String wechatPaySerial = ""; // 平台证书序列号
 
     private CloseableHttpClient httpClient;
@@ -67,6 +72,15 @@ public class RsaCryptoTest {
         String ciphertext = RsaCryptoUtil
                 .encryptOAEP(text, verifier.getValidCertificate());
         System.out.println("ciphertext: " + ciphertext);
+    }
+
+    @Test
+    public void cryptWithTransformationTest() throws IllegalBlockSizeException, BadPaddingException {
+        String email = "lion@tencent.com";
+        String transformation = "RSA/ECB/PKCS1Padding";
+        String encryptedEmail = RsaCryptoUtil.encrypt(email, PemUtil.loadCertificate(merchantCert), transformation);
+        System.out.println("encryptedEmail: " + encryptedEmail);
+        assertEquals(email, RsaCryptoUtil.decrypt(encryptedEmail, PemUtil.loadPrivateKey(privateKey), transformation));
     }
 
     @Test
