@@ -38,8 +38,10 @@ public class RsaCryptoTest {
     private static final String mchSerialNo = ""; // 商户证书序列号
     private static final String apiV3Key = ""; // API V3密钥
     private static final String privateKey = "";
-    private static final String merchantCert = "";
     private static final String wechatPaySerial = ""; // 平台证书序列号
+
+    private static final String certForEncrypt = ""; // 用于测试加密功能的证书
+    private static final String privateKeyForDecrypt = ""; // 用于测试解密功能的私钥
 
     private CloseableHttpClient httpClient;
     private CertificatesManager certificatesManager;
@@ -78,9 +80,9 @@ public class RsaCryptoTest {
     public void cryptWithTransformationTest() throws IllegalBlockSizeException, BadPaddingException {
         String email = "lion@tencent.com";
         String transformation = "RSA/ECB/PKCS1Padding";
-        String encryptedEmail = RsaCryptoUtil.encrypt(email, PemUtil.loadCertificate(merchantCert), transformation);
+        String encryptedEmail = RsaCryptoUtil.encrypt(email, PemUtil.loadCertificate(certForEncrypt), transformation);
         System.out.println("encryptedEmail: " + encryptedEmail);
-        assertEquals(email, RsaCryptoUtil.decrypt(encryptedEmail, PemUtil.loadPrivateKey(privateKey), transformation));
+        assertEquals(email, RsaCryptoUtil.decrypt(encryptedEmail, PemUtil.loadPrivateKey(privateKeyForDecrypt), transformation));
     }
 
     @Test
