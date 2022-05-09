@@ -123,7 +123,7 @@ public class RsaCryptoTest {
     }
 
     @Test
-    public void encryptWithTransformationTest() throws IllegalBlockSizeException {
+    public void encryptWithPkcs1TransformationTest() throws IllegalBlockSizeException {
         String text = "helloworld";
         String transformation = "RSA/ECB/PKCS1Padding";
         String encryptedText = RsaCryptoUtil.encrypt(text, PemUtil.loadCertificate(new ByteArrayInputStream(certForEncrypt.getBytes())), transformation);
@@ -131,12 +131,30 @@ public class RsaCryptoTest {
     }
 
     @Test
-    public void decryptWithTransformationTest() throws BadPaddingException {
+    public void decryptWithPkcs1TransformationTest() throws BadPaddingException {
         String encryptedText = "lmkkdBz5CH4Zk6KIEzbyenf+WtKe8nuU9j+t8HonOm4v1OfLRiYhvdcequOSuaz5vjdpX434XjV9Q5LGC8aOC" +
                 "DZs/8LoyR3m/6JpYa0nkGOh6Le2JvSPNXlSq9HUEoElBJD5KsxbsRoif0kuioBGSKvKB0xwIvVtn+S0H2GYya7TC1L/ddhGhI/yx" +
                 "ZgS/TI/Ppej3OzNmu0xA5RjpDR4rGAUrLvV7y/aM4mCN6WOaO6YsAnlGoSbK+P1sepeb0sCaJMClqbLE0Eoz2ve9FQ30w1Vgi5F0" +
                 "2rpDwcZO8EXAkub0L12BN4QWBNK8FaKlS4UZPAGAwutLK6Gylig54Quig==";
         String transformation = "RSA/ECB/PKCS1Padding";
+        assertEquals("helloworld", RsaCryptoUtil.decrypt(encryptedText, PemUtil.loadPrivateKey(privateKeyForDecrypt), transformation));
+    }
+
+    @Test
+    public void encryptWithOaepTransformationTest() throws IllegalBlockSizeException {
+        String text = "helloworld";
+        String transformation = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
+        String encryptedText = RsaCryptoUtil.encrypt(text, PemUtil.loadCertificate(new ByteArrayInputStream(certForEncrypt.getBytes())), transformation);
+        System.out.println("encrypted text: " + encryptedText);
+    }
+
+    @Test
+    public void decryptWithOaepTransformationTest() throws BadPaddingException {
+        String encryptedText = "FJ8/0ubyxnMZ0GN2YEUgJgDVPCwMrsTKuLFxycI3jvOAcVTDEEermn2F7+cUtmCYvD2TkHUMHvWeJB6/nSPBD" +
+                "eGuxA4bCr584h2w9bRvVrwtQlnv1HpF2WRdGAuPcgrQcZvMpiH2ysxgPrGPMs9WOr8etxf1FifI0DkMb6w7wl2BDPPK+RfRdZq7T" +
+                "9KBtH2IllVTLUbRSqDGIctgIxB7RMqd3s/eK0p2Qjui8AVgP4j5Spq6JjITgKn0VDOO4JwzU8Zl++BwveoJMkTN150XF5ot+ruZv" +
+                "lNgjP1Hez0/rFxY7gQvxrSDwgL5A9up6JRI741psfs/3HrzBJOBdvO73A==";
+        String transformation = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
         assertEquals("helloworld", RsaCryptoUtil.decrypt(encryptedText, PemUtil.loadPrivateKey(privateKeyForDecrypt), transformation));
     }
 
