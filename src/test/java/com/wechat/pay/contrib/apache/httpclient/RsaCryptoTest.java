@@ -5,7 +5,6 @@ import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
@@ -15,6 +14,8 @@ import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.cert.CertificatesManager;
 import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import com.wechat.pay.contrib.apache.httpclient.util.RsaCryptoUtil;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
@@ -37,7 +38,7 @@ public class RsaCryptoTest {
     private static final String mchId = ""; // 商户号
     private static final String mchSerialNo = ""; // 商户证书序列号
     private static final String apiV3Key = ""; // API V3密钥
-    private static final String privateKey = "";
+    private static final String privateKey = ""; // 商户API V3私钥
     private static final String wechatPaySerial = ""; // 平台证书序列号
 
     private static final String certForEncrypt = ""; // 用于测试加密功能的证书
@@ -77,12 +78,18 @@ public class RsaCryptoTest {
     }
 
     @Test
-    public void cryptWithTransformationTest() throws IllegalBlockSizeException, BadPaddingException {
-        String email = "lion@tencent.com";
+    public void encryptWithTransformationTest() throws IllegalBlockSizeException {
+        String text = "helloworld";
         String transformation = "RSA/ECB/PKCS1Padding";
-        String encryptedEmail = RsaCryptoUtil.encrypt(email, PemUtil.loadCertificate(certForEncrypt), transformation);
-        System.out.println("encryptedEmail: " + encryptedEmail);
-        assertEquals(email, RsaCryptoUtil.decrypt(encryptedEmail, PemUtil.loadPrivateKey(privateKeyForDecrypt), transformation));
+        String encryptedText = RsaCryptoUtil.encrypt(text, PemUtil.loadCertificate(new ByteArrayInputStream(certForEncrypt.getBytes())), transformation);
+        System.out.println("encrypted text: " + encryptedText);
+    }
+
+    @Test
+    public void decryptWithTransformationTest() throws BadPaddingException {
+        String encryptedText = "L8h0PTZFxq1xelmKLwt7KukA2ghtAEImCD19sE7kAjE9kEb7cpWrK73SsA=="; // 需替换为正确加密后的字符串。
+        String transformation = "RSA/ECB/PKCS1Padding";
+        System.out.println("decrypted text: " + RsaCryptoUtil.decrypt(encryptedText, PemUtil.loadPrivateKey(privateKeyForDecrypt), transformation));
     }
 
     @Test
