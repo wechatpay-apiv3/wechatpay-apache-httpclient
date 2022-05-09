@@ -5,6 +5,7 @@ import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.wechat.pay.contrib.apache.httpclient.auth.PrivateKeySigner;
@@ -87,9 +88,9 @@ public class RsaCryptoTest {
 
     @Test
     public void decryptWithTransformationTest() throws BadPaddingException {
-        String encryptedText = "L8h0PTZFxq1xelmKLwt7KukA2ghtAEImCD19sE7kAjE9kEb7cpWrK73SsA=="; // 需替换为正确加密后的字符串。
+        String encryptedText = "lx+L4CEgNiz62Exe4NY5/EiGl1wSbSIU8LqOx0/xrB0js5jN/nYMqzDgig=="; // 需替换为正确加密后的字符串
         String transformation = "RSA/ECB/PKCS1Padding";
-        System.out.println("decrypted text: " + RsaCryptoUtil.decrypt(encryptedText, PemUtil.loadPrivateKey(privateKeyForDecrypt), transformation));
+        assertEquals("helloworld", RsaCryptoUtil.decrypt(encryptedText, PemUtil.loadPrivateKey(privateKeyForDecrypt), transformation));
     }
 
     @Test
