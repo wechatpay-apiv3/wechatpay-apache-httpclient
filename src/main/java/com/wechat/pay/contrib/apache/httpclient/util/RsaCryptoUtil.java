@@ -19,8 +19,12 @@ public class RsaCryptoUtil {
     private static final String TRANSFORMATION = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
 
     public static String encryptOAEP(String message, X509Certificate certificate) throws IllegalBlockSizeException {
+        return encrypt(message, certificate, TRANSFORMATION);
+    }
+
+    public static String encrypt(String message, X509Certificate certificate, String transformation) throws IllegalBlockSizeException {
         try {
-            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            Cipher cipher = Cipher.getInstance(transformation);
             cipher.init(Cipher.ENCRYPT_MODE, certificate.getPublicKey());
             byte[] data = message.getBytes(StandardCharsets.UTF_8);
             byte[] ciphertext = cipher.doFinal(data);
@@ -36,8 +40,12 @@ public class RsaCryptoUtil {
     }
 
     public static String decryptOAEP(String ciphertext, PrivateKey privateKey) throws BadPaddingException {
+        return decrypt(ciphertext, privateKey, TRANSFORMATION);
+    }
+
+    public static String decrypt(String ciphertext, PrivateKey privateKey, String transformation) throws BadPaddingException {
         try {
-            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            Cipher cipher = Cipher.getInstance(transformation);
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
             byte[] data = Base64.getDecoder().decode(ciphertext);
             return new String(cipher.doFinal(data), StandardCharsets.UTF_8);
