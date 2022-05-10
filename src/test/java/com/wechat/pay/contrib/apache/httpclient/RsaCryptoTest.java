@@ -20,6 +20,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
+import java.util.Base64;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -31,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.management.PersistentMBean;
 
@@ -123,11 +126,15 @@ public class RsaCryptoTest {
     }
 
     @Test
-    public void encryptWithPkcs1TransformationTest() throws IllegalBlockSizeException {
+    public void encryptWithPkcs1TransformationTest() throws Exception {
         String text = "helloworld";
         String transformation = "RSA/ECB/PKCS1Padding";
         String encryptedText = RsaCryptoUtil.encrypt(text, PemUtil.loadCertificate(new ByteArrayInputStream(certForEncrypt.getBytes())), transformation);
-        System.out.println("encrypted text: " + encryptedText);
+        //utilize the standard lib to verify the correctness of the encrypted result.
+        Cipher cipher = Cipher.getInstance(transformation);
+        cipher.init(Cipher.DECRYPT_MODE, PemUtil.loadPrivateKey(privateKeyForDecrypt));
+        String secretText = new String((cipher.doFinal(Base64.getDecoder().decode(encryptedText))));
+        assert(text.equals(secretText));
     }
 
     @Test
@@ -141,11 +148,15 @@ public class RsaCryptoTest {
     }
 
     @Test
-    public void encryptWithOaepTransformationTest() throws IllegalBlockSizeException {
+    public void encryptWithOaepTransformationTest() throws Exception {
         String text = "helloworld";
         String transformation = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
         String encryptedText = RsaCryptoUtil.encrypt(text, PemUtil.loadCertificate(new ByteArrayInputStream(certForEncrypt.getBytes())), transformation);
-        System.out.println("encrypted text: " + encryptedText);
+        //utilize the standard lib to verify the correctness of the encrypted result.
+        Cipher cipher = Cipher.getInstance(transformation);
+        cipher.init(Cipher.DECRYPT_MODE, PemUtil.loadPrivateKey(privateKeyForDecrypt));
+        String secretText = new String((cipher.doFinal(Base64.getDecoder().decode(encryptedText))));
+        assert(text.equals(secretText));
     }
 
     @Test
