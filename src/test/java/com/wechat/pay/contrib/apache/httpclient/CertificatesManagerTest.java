@@ -34,11 +34,8 @@ public class CertificatesManagerTest {
     // 你的商户私钥
     private static final String privateKey = "-----BEGIN PRIVATE KEY-----\n"
             + "-----END PRIVATE KEY-----\n";
-    private static final String serialNumber = "";
-    private static final String message = "";
-    private static final String signature = "";
-    private static final String mchId = ""; // 商户号
-    private static final String mchSerialNo = ""; // 商户证书序列号
+    private static final String merchantId = ""; // 商户号
+    private static final String merchantSerialNumber = ""; // 商户证书序列号
     private static final String apiV3Key = ""; // API V3密钥
     private CloseableHttpClient httpClient;
     CertificatesManager certificatesManager;
@@ -50,13 +47,14 @@ public class CertificatesManagerTest {
         // 获取证书管理器实例
         certificatesManager = CertificatesManager.getInstance();
         // 向证书管理器增加需要自动更新平台证书的商户信息
-        certificatesManager.putMerchant(mchId, new WechatPay2Credentials(mchId,
-                new PrivateKeySigner(mchSerialNo, merchantPrivateKey)), apiV3Key.getBytes(StandardCharsets.UTF_8));
+        certificatesManager.putMerchant(merchantId, new WechatPay2Credentials(merchantId,
+                        new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
+                apiV3Key.getBytes(StandardCharsets.UTF_8));
         // 从证书管理器中获取verifier
-        verifier = certificatesManager.getVerifier(mchId);
+        verifier = certificatesManager.getVerifier(merchantId);
         // 构造httpclient
         httpClient = WechatPayHttpClientBuilder.create()
-                .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
+                .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
                 .withValidator(new WechatPay2Validator(verifier))
                 .build();
     }

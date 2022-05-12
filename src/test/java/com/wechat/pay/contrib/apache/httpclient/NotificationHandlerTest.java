@@ -18,8 +18,8 @@ public class NotificationHandlerTest {
 
     private static final String privateKey = "-----BEGIN PRIVATE KEY-----\n"
             + "-----END PRIVATE KEY-----\n"; // 商户私钥
-    private static final String mchId = ""; // 商户号
-    private static final String mchSerialNo = ""; // 商户证书序列号
+    private static final String merchantId = ""; // 商户号
+    private static final String merchantSerialNumber = ""; // 商户证书序列号
     private static final String apiV3Key = ""; // apiV3密钥
     private static final String wechatPaySerial = ""; // 平台证书序列号
     private static final String nonce = ""; // 请求头Wechatpay-Nonce
@@ -35,10 +35,11 @@ public class NotificationHandlerTest {
         // 获取证书管理器实例
         certificatesManager = CertificatesManager.getInstance();
         // 向证书管理器增加需要自动更新平台证书的商户信息
-        certificatesManager.putMerchant(mchId, new WechatPay2Credentials(mchId,
-                new PrivateKeySigner(mchSerialNo, merchantPrivateKey)), apiV3Key.getBytes(StandardCharsets.UTF_8));
+        certificatesManager.putMerchant(merchantId, new WechatPay2Credentials(merchantId,
+                        new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
+                apiV3Key.getBytes(StandardCharsets.UTF_8));
         // 从证书管理器中获取verifier
-        verifier = certificatesManager.getVerifier(mchId);
+        verifier = certificatesManager.getVerifier(merchantId);
     }
 
     @Test

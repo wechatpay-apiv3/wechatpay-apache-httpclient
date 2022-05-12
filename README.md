@@ -58,7 +58,7 @@ import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 //...
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
-        .withWechatPay(wechatpayCertificates);
+        .withWechatPay(wechatPayCertificates);
 // ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
 
 // 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签
@@ -73,7 +73,7 @@ CloseableHttpResponse response = httpClient.execute(...);
 + `merchantId`商户号。
 + `merchantSerialNumber`商户API证书的证书序列号。
 + `merchantPrivateKey`商户API私钥，如何加载商户API私钥请看[常见问题](#如何加载商户私钥)。
-+ `wechatpayCertificates`微信支付平台证书。你也可以使用后面章节提到的“[定时更新平台证书功能](#定时更新平台证书功能)”，而不需要关心平台证书的来龙去脉。
++ `wechatPayCertificates`微信支付平台证书列表。你也可以使用后面章节提到的“[定时更新平台证书功能](#定时更新平台证书功能)”，而不需要关心平台证书的来龙去脉。
 
 ### 示例：获取平台证书
 
@@ -177,24 +177,24 @@ Credentials credentials = new WechatPay2Credentials(merchantId, new Signer() {
 });
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withCredentials(credentials)
-        .withWechatPay(wechatpayCertificates);
+        .withWechatPay(wechatPayCertificates);
 ```
 
 ## 定时更新平台证书功能
 
-版本>=`0.4.0`可使用 CertificatesManager.getVerifier(mchId) 得到的验签器替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认下载间隔为UPDATE_INTERVAL_MINUTE）。
+版本>=`0.4.0`可使用 CertificatesManager.getVerifier(merchantId) 得到的验签器替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认下载间隔为UPDATE_INTERVAL_MINUTE）。
 
 示例代码：
 ```java
 // 获取证书管理器实例
 certificatesManager = CertificatesManager.getInstance();
 // 向证书管理器增加需要自动更新平台证书的商户信息
-certificatesManager.putMerchant(mchId, new WechatPay2Credentials(mchId,
-            new PrivateKeySigner(mchSerialNo, merchantPrivateKey)), apiV3Key.getBytes(StandardCharsets.UTF_8));
+certificatesManager.putMerchant(merchantId, new WechatPay2Credentials(merchantId,
+            new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)), apiV3Key.getBytes(StandardCharsets.UTF_8));
 // ... 若有多个商户号，可继续调用putMerchant添加商户信息
 
 // 从证书管理器中获取verifier
-verifier = certificatesManager.getVerifier(mchId);
+verifier = certificatesManager.getVerifier(merchantId);
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
         .withValidator(new WechatPay2Validator(verifier))
@@ -221,9 +221,9 @@ CloseableHttpResponse response = httpClient.execute(...);
 
 ```java
 // 建议从Verifier中获得微信支付平台证书，或使用预先下载到本地的平台证书文件中
-X509Certificate wechatpayCertificate = verifier.getValidCertificate();
+X509Certificate certificate = verifier.getValidCertificate();
 try {
-  String ciphertext = RsaCryptoUtil.encryptOAEP(text, wechatpayCertificate);
+  String ciphertext = RsaCryptoUtil.encryptOAEP(text, certificate);
 } catch (IllegalBlockSizeException e) {
   e.printStackTrace();
 }
@@ -321,7 +321,7 @@ PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
 
 ```java
 CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
-  .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
+  .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
   .withValidator(response -> true) // NOTE: 设置一个空的应答签名验证器，**不要**用在业务请求
   .build();
 ```

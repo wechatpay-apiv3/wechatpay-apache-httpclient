@@ -15,13 +15,13 @@ import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.cert.CertificatesManager;
 import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import com.wechat.pay.contrib.apache.httpclient.util.RsaCryptoUtil;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.util.Base64;
-
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -32,15 +32,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.management.PersistentMBean;
-
 public class RsaCryptoTest {
 
-    private static final String mchId = ""; // 商户号
-    private static final String mchSerialNo = ""; // 商户证书序列号
+    private static final String merchantId = ""; // 商户号
+    private static final String merchantSerialNumber = ""; // 商户证书序列号
     private static final String apiV3Key = ""; // API V3密钥
     private static final String privateKey = ""; // 商户API V3私钥
     private static final String wechatPaySerial = ""; // 平台证书序列号
@@ -102,13 +97,14 @@ public class RsaCryptoTest {
         // 获取证书管理器实例
         certificatesManager = CertificatesManager.getInstance();
         // 向证书管理器增加需要自动更新平台证书的商户信息
-        certificatesManager.putMerchant(mchId, new WechatPay2Credentials(mchId,
-                new PrivateKeySigner(mchSerialNo, merchantPrivateKey)), apiV3Key.getBytes(StandardCharsets.UTF_8));
+        certificatesManager.putMerchant(merchantId, new WechatPay2Credentials(merchantId,
+                        new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
+                apiV3Key.getBytes(StandardCharsets.UTF_8));
         // 从证书管理器中获取verifier
-        verifier = certificatesManager.getVerifier(mchId);
+        verifier = certificatesManager.getVerifier(merchantId);
         httpClient = WechatPayHttpClientBuilder.create()
-                .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
-                .withValidator(new WechatPay2Validator(certificatesManager.getVerifier(mchId)))
+                .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
+                .withValidator(new WechatPay2Validator(certificatesManager.getVerifier(merchantId)))
                 .build();
     }
 
