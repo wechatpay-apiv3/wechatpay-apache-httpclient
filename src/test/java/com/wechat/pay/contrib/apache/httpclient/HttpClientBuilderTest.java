@@ -31,8 +31,8 @@ import org.junit.Test;
 
 public class HttpClientBuilderTest {
 
-    private static final String mchId = "1900009191"; // 商户号
-    private static final String mchSerialNo = "1DDE55AD98ED71D6EDD4A4A16996DE7B47773A8C"; // 商户证书序列号
+    private static final String merchantId = "1900009191"; // 商户号
+    private static final String merchantSerialNumber = "1DDE55AD98ED71D6EDD4A4A16996DE7B47773A8C"; // 商户证书序列号
     private static final String requestBody = "{\n"
             + "    \"stock_id\": \"9433645\",\n"
             + "    \"stock_creator_mchid\": \"1900006511\",\n"
@@ -50,15 +50,15 @@ public class HttpClientBuilderTest {
     @Before
     public void setup() {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
-        X509Certificate wechatPayCertificate = PemUtil.loadCertificate(
+        X509Certificate wechatPayCert = PemUtil.loadCertificate(
                 new ByteArrayInputStream(certificate.getBytes(StandardCharsets.UTF_8)));
 
-        ArrayList<X509Certificate> listCertificates = new ArrayList<>();
-        listCertificates.add(wechatPayCertificate);
+        ArrayList<X509Certificate> wechatPayCertificates = new ArrayList<>();
+        wechatPayCertificates.add(wechatPayCert);
 
         httpClient = WechatPayHttpClientBuilder.create()
-                .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
-                .withWechatPay(listCertificates)
+                .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
+                .withWechatPay(wechatPayCertificates)
                 .build();
     }
 
@@ -84,7 +84,7 @@ public class HttpClientBuilderTest {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
 
         httpClient = WechatPayHttpClientBuilder.create()
-                .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
+                .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
                 .withValidator(response -> true)
                 .build();
 

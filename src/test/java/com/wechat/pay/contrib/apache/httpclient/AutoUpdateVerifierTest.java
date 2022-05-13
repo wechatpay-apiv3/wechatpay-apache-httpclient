@@ -39,8 +39,8 @@ public class AutoUpdateVerifierTest {
     private static final String serialNumber = "";
     private static final String message = "";
     private static final String signature = "";
-    private static final String mchId = ""; // 商户号
-    private static final String mchSerialNo = ""; // 商户证书序列号
+    private static final String merchantId = ""; // 商户号
+    private static final String merchantSerialNumber = ""; // 商户证书序列号
     private static final String apiV3Key = ""; // API V3密钥
     private CloseableHttpClient httpClient;
     private AutoUpdateCertificatesVerifier verifier;
@@ -51,11 +51,11 @@ public class AutoUpdateVerifierTest {
 
         //使用自动更新的签名验证器，不需要传入证书
         verifier = new AutoUpdateCertificatesVerifier(
-                new WechatPay2Credentials(mchId, new PrivateKeySigner(mchSerialNo, merchantPrivateKey)),
+                new WechatPay2Credentials(merchantId, new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
                 apiV3Key.getBytes(StandardCharsets.UTF_8));
 
         httpClient = WechatPayHttpClientBuilder.create()
-                .withMerchant(mchId, mchSerialNo, merchantPrivateKey)
+                .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
                 .withValidator(new WechatPay2Validator(verifier))
                 .build();
     }
