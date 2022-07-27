@@ -63,10 +63,6 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         this(credentials, apiV3Key, TimeUnit.HOURS.toMinutes(1), null);
     }
 
-    public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, HttpHost proxy) {
-        this(credentials, apiV3Key, TimeUnit.HOURS.toMinutes(1), proxy);
-    }
-
 
     public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, long minutesInterval) {
         this(credentials, apiV3Key, minutesInterval, null);
