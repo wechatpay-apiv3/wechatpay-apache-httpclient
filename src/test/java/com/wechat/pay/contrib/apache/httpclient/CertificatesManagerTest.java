@@ -25,6 +25,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.HttpHost;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,11 +42,16 @@ public class CertificatesManagerTest {
     CertificatesManager certificatesManager;
     Verifier verifier;
 
+    private static final HttpHost proxy = null;
+//    private static final HttpHost proxy = new HttpHost("127.0.0.1", 8080);
+
     @Before
     public void setup() throws Exception {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
         // 获取证书管理器实例
         certificatesManager = CertificatesManager.getInstance();
+        // 添加代理服务器
+        certificatesManager.setProxy(proxy);
         // 向证书管理器增加需要自动更新平台证书的商户信息
         certificatesManager.putMerchant(merchantId, new WechatPay2Credentials(merchantId,
                         new PrivateKeySigner(merchantSerialNumber, merchantPrivateKey)),
