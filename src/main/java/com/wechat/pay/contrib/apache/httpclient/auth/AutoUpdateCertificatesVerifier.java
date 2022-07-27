@@ -27,6 +27,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.HttpHost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,15 +57,27 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
      */
     protected volatile Instant lastUpdateTime;
     protected CertificatesVerifier verifier;
+    protected HttpHost proxy;
 
     public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key) {
-        this(credentials, apiV3Key, TimeUnit.HOURS.toMinutes(1));
+        this(credentials, apiV3Key, TimeUnit.HOURS.toMinutes(1), null);
     }
 
+    public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, HttpHost proxy) {
+        this(credentials, apiV3Key, TimeUnit.HOURS.toMinutes(1), proxy);
+    }
+
+
     public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, long minutesInterval) {
+        this(credentials, apiV3Key, minutesInterval, null);
+    }
+
+    public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, long minutesInterval, HttpHost proxy) {
         this.credentials = credentials;
         this.apiV3Key = apiV3Key;
         this.minutesInterval = minutesInterval;
+        // 添加代理支持
+        this.proxy = proxy;
         //构造时更新证书
         try {
             autoUpdateCert();
@@ -102,6 +115,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(credentials)
                 .withValidator(verifier == null ? (response) -> true : new WechatPay2Validator(verifier))
+                .withProxy(proxy)
                 .build()) {
 
             HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);

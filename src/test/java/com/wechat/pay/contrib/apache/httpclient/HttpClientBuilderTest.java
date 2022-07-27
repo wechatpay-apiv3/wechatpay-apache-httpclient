@@ -25,6 +25,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.HttpHost;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +48,9 @@ public class HttpClientBuilderTest {
             + "-----END CERTIFICATE-----";
     private CloseableHttpClient httpClient;
 
+    private static final HttpHost proxy = null;
+//    private static final HttpHost proxy = new HttpHost("127.0.0.1", 9080);
+
     @Before
     public void setup() {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
@@ -59,6 +63,7 @@ public class HttpClientBuilderTest {
         httpClient = WechatPayHttpClientBuilder.create()
                 .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
                 .withWechatPay(wechatPayCertificates)
+                .withProxy(proxy)
                 .build();
     }
 

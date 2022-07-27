@@ -32,6 +32,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.HttpHost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,8 @@ public class CertificatesManager {
     private static final String SCHEDULE_UPDATE_CERT_THREAD_NAME = "scheduled_update_cert_thread";
     private volatile static CertificatesManager instance = null;
     private ConcurrentHashMap<String, byte[]> apiV3Keys = new ConcurrentHashMap<>();
+
+    private HttpHost proxy;
 
     private ConcurrentHashMap<String, ConcurrentHashMap<BigInteger, X509Certificate>> certificates = new ConcurrentHashMap<>();
 
@@ -158,6 +161,15 @@ public class CertificatesManager {
         }
     }
 
+    /***
+    * 代理配置
+    *
+    * @param proxy 代理host
+    **/
+    public synchronized void setProxy(HttpHost proxy) {
+        this.proxy = proxy;
+    }
+
     /**
      * 停止自动更新平台证书，停止后无法再重新启动
      */
@@ -257,6 +269,7 @@ public class CertificatesManager {
                 .withCredentials(credentials)
                 .withValidator(verifier == null ? (response) -> true
                         : new WechatPay2Validator(verifier))
+                .withProxy(proxy)
                 .build()) {
             HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);
             httpGet.addHeader(ACCEPT, APPLICATION_JSON.toString());
