@@ -43,7 +43,6 @@ public class CertificatesManagerTest {
     Verifier verifier;
 
     private static final HttpHost proxy = null;
-//    private static final HttpHost proxy = new HttpHost("127.0.0.1", 8080);
 
     @Before
     public void setup() throws Exception {
