@@ -10,6 +10,7 @@ import java.util.List;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.execchain.ClientExecChain;
+import org.apache.http.HttpHost;
 
 /**
  * @author xy-peng
@@ -20,6 +21,7 @@ public class WechatPayHttpClientBuilder extends HttpClientBuilder {
     private static final String VERSION = System.getProperty("java.version");
     private Credentials credentials;
     private Validator validator;
+
 
     private WechatPayHttpClientBuilder() {
         super();
@@ -48,6 +50,13 @@ public class WechatPayHttpClientBuilder extends HttpClientBuilder {
 
     public WechatPayHttpClientBuilder withWechatPay(List<X509Certificate> certificates) {
         this.validator = new WechatPay2Validator(new CertificatesVerifier(certificates));
+        return this;
+    }
+
+    public WechatPayHttpClientBuilder withProxy(HttpHost proxy) {
+        if (proxy != null) {
+            this.setProxy(proxy);
+        }
         return this;
     }
 
