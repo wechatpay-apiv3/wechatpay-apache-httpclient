@@ -20,7 +20,7 @@ ext {
     httpclient_version = "4.5.13"
     slf4j_version = "1.7.36"
     junit_version = "4.13.2"
-    jackson_version = "2.13.3"
+    jackson_version = "2.13.4.2"
 }
 
 jar {
