@@ -92,8 +92,8 @@ public class SignatureExec implements ClientExecChain {
             }
         } else {
             // 错误应答需要打日志
-            log.error("应答的状态码不为200-299。status code[{}]\trequest headers[{}]", statusLine.getStatusCode(),
-                    Arrays.toString(request.getAllHeaders()));
+            log.error("应答的状态码不为200-299。status code[{}]\tresponse body[{}]\trequest headers[{}]", statusLine.getStatusCode(),
+                    EntityUtils.toString(response.getEntity()), Arrays.toString(request.getAllHeaders()));
             if (isEntityEnclosing(request) && !isUploadHttpPost(request)) {
                 HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
                 String body = EntityUtils.toString(entity);
