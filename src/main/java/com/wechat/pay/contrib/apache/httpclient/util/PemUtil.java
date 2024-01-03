@@ -38,6 +38,9 @@ public class PemUtil {
     }
 
     public static PrivateKey loadPrivateKey(InputStream inputStream) {
+        if(inputStream == null){
+            throw new IllegalArgumentException("无效文件流");
+        }
         ByteArrayOutputStream os = new ByteArrayOutputStream(2048);
         byte[] buffer = new byte[1024];
         String privateKey;
@@ -48,11 +51,21 @@ public class PemUtil {
             privateKey = os.toString("UTF-8");
         } catch (IOException e) {
             throw new IllegalArgumentException("无效的密钥", e);
+        }finally {
+            try {
+                inputStream.close();
+                os.close();
+            } catch (IOException e) {
+                // ignore
+            }
         }
         return loadPrivateKey(privateKey);
     }
 
     public static X509Certificate loadCertificate(InputStream inputStream) {
+        if(inputStream == null){
+            throw new IllegalArgumentException("无效文件流");
+        }
         try {
             CertificateFactory cf = CertificateFactory.getInstance("X509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inputStream);
@@ -64,6 +77,12 @@ public class PemUtil {
             throw new RuntimeException("证书尚未生效", e);
         } catch (CertificateException e) {
             throw new RuntimeException("无效的证书", e);
+        }finally {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                // ignore
+            }
         }
     }
 
