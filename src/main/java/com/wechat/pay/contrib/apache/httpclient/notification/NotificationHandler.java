@@ -78,7 +78,7 @@ public NotificationHandler(Verifier verifier, byte[] apiV3Key) {
      * @return 解析结果
      * @throws ParseException 解析body失败
      */
-    private Notification parseBody(String body) throws ParseException {
+    public Notification parseBody(String body) throws ParseException {
         ObjectReader objectReader = objectMapper.reader();
         Notification notification;
         try {
