@@ -10,6 +10,7 @@ import com.wechat.pay.contrib.apache.httpclient.auth.Verifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.exception.HttpCodeException;
 import com.wechat.pay.contrib.apache.httpclient.exception.NotFoundException;
+import com.wechat.pay.contrib.apache.httpclient.proxy.HttpProxyFactory;
 import com.wechat.pay.contrib.apache.httpclient.util.CertSerializeUtil;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -25,14 +26,15 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.HttpHost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +46,8 @@ import org.slf4j.LoggerFactory;
  */
 public class CertificatesManager {
 
-    private static final Logger log = LoggerFactory.getLogger(CertificatesManager.class);
     protected static final int UPDATE_INTERVAL_MINUTE = 1440;
+    private static final Logger log = LoggerFactory.getLogger(CertificatesManager.class);
     /**
      * 证书下载地址
      */
@@ -54,64 +56,17 @@ public class CertificatesManager {
     private volatile static CertificatesManager instance = null;
     private ConcurrentHashMap<String, byte[]> apiV3Keys = new ConcurrentHashMap<>();
 
+    private HttpProxyFactory proxyFactory;
     private HttpHost proxy;
 
-    private ConcurrentHashMap<String, ConcurrentHashMap<BigInteger, X509Certificate>> certificates = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, ConcurrentHashMap<BigInteger, X509Certificate>> certificates =
+            new ConcurrentHashMap<>();
 
     private ConcurrentHashMap<String, Credentials> credentialsMap = new ConcurrentHashMap<>();
     /**
      * 执行定时更新平台证书的线程池
      */
     private ScheduledExecutorService executor;
-
-    /**
-     * 内部验签器
-     */
-    private class DefaultVerifier implements Verifier {
-
-        private String merchantId;
-
-        private DefaultVerifier(String merchantId) {
-            this.merchantId = merchantId;
-        }
-
-        @Override
-        public boolean verify(String serialNumber, byte[] message, String signature) {
-            if (serialNumber.isEmpty() || message.length == 0 || signature.isEmpty()) {
-                throw new IllegalArgumentException("serialNumber或message或signature为空");
-            }
-            BigInteger serialNumber16Radix = new BigInteger(serialNumber, 16);
-            ConcurrentHashMap<BigInteger, X509Certificate> merchantCertificates = certificates.get(merchantId);
-            X509Certificate certificate = merchantCertificates.get(serialNumber16Radix);
-            if (certificate == null) {
-                log.error("商户证书为空，serialNumber:{}", serialNumber);
-                return false;
-            }
-            try {
-                Signature sign = Signature.getInstance("SHA256withRSA");
-                sign.initVerify(certificate);
-                sign.update(message);
-                return sign.verify(Base64.getDecoder().decode(signature));
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException("当前Java环境不支持SHA256withRSA", e);
-            } catch (SignatureException e) {
-                throw new RuntimeException("签名验证过程发生了错误", e);
-            } catch (InvalidKeyException e) {
-                throw new RuntimeException("无效的证书", e);
-            }
-        }
-
-        @Override
-        public X509Certificate getValidCertificate() {
-            X509Certificate certificate;
-            try {
-                certificate = CertificatesManager.this.getLatestCertificate(merchantId);
-            } catch (NotFoundException e) {
-                throw new NoSuchElementException("没有有效的微信支付平台证书");
-            }
-            return certificate;
-        }
-    }
 
     private CertificatesManager() {
     }
@@ -162,12 +117,25 @@ public class CertificatesManager {
     }
 
     /***
-    * 代理配置
-    *
-    * @param proxy 代理host
-    **/
+     * 代理配置
+     *
+     * @param proxy 代理host
+     **/
     public synchronized void setProxy(HttpHost proxy) {
         this.proxy = proxy;
+    }
+
+    /**
+     * 设置代理工厂
+     *
+     * @param proxyFactory 代理工厂
+     */
+    public synchronized void setProxyFactory(HttpProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
+    }
+
+    public synchronized HttpHost resolveProxy() {
+        return Objects.nonNull(proxyFactory) ? proxyFactory.buildHttpProxy() : proxy;
     }
 
     /**
@@ -236,7 +204,6 @@ public class CertificatesManager {
         return new DefaultVerifier(merchantId);
     }
 
-
     private void beginScheduleUpdate() {
         executor = new SafeSingleScheduleExecutor();
         Runnable runnable = () -> {
@@ -265,6 +232,7 @@ public class CertificatesManager {
      */
     private synchronized void downloadAndUpdateCert(String merchantId, Verifier verifier, Credentials credentials,
             byte[] apiV3Key) throws HttpCodeException, IOException, GeneralSecurityException {
+        proxy = resolveProxy();
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(credentials)
                 .withValidator(verifier == null ? (response) -> true
@@ -322,6 +290,55 @@ public class CertificatesManager {
             } catch (Exception e) {
                 log.error("downloadAndUpdateCert Failed.merchantId:{}, e:{}", merchantId, e);
             }
+        }
+    }
+
+    /**
+     * 内部验签器
+     */
+    private class DefaultVerifier implements Verifier {
+
+        private String merchantId;
+
+        private DefaultVerifier(String merchantId) {
+            this.merchantId = merchantId;
+        }
+
+        @Override
+        public boolean verify(String serialNumber, byte[] message, String signature) {
+            if (serialNumber.isEmpty() || message.length == 0 || signature.isEmpty()) {
+                throw new IllegalArgumentException("serialNumber或message或signature为空");
+            }
+            BigInteger serialNumber16Radix = new BigInteger(serialNumber, 16);
+            ConcurrentHashMap<BigInteger, X509Certificate> merchantCertificates = certificates.get(merchantId);
+            X509Certificate certificate = merchantCertificates.get(serialNumber16Radix);
+            if (certificate == null) {
+                log.error("商户证书为空，serialNumber:{}", serialNumber);
+                return false;
+            }
+            try {
+                Signature sign = Signature.getInstance("SHA256withRSA");
+                sign.initVerify(certificate);
+                sign.update(message);
+                return sign.verify(Base64.getDecoder().decode(signature));
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException("当前Java环境不支持SHA256withRSA", e);
+            } catch (SignatureException e) {
+                throw new RuntimeException("签名验证过程发生了错误", e);
+            } catch (InvalidKeyException e) {
+                throw new RuntimeException("无效的证书", e);
+            }
+        }
+
+        @Override
+        public X509Certificate getValidCertificate() {
+            X509Certificate certificate;
+            try {
+                certificate = CertificatesManager.this.getLatestCertificate(merchantId);
+            } catch (NotFoundException e) {
+                throw new NoSuchElementException("没有有效的微信支付平台证书");
+            }
+            return certificate;
         }
     }
 }

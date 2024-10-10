@@ -10,6 +10,7 @@ import com.wechat.pay.contrib.apache.httpclient.auth.Verifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Credentials;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
 import com.wechat.pay.contrib.apache.httpclient.cert.CertificatesManager;
+import com.wechat.pay.contrib.apache.httpclient.proxy.HttpProxyFactory;
 import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,13 +21,14 @@ import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.HttpHost;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,11 +40,10 @@ public class CertificatesManagerTest {
     private static final String merchantId = ""; // 商户号
     private static final String merchantSerialNumber = ""; // 商户证书序列号
     private static final String apiV3Key = ""; // API V3密钥
-    private CloseableHttpClient httpClient;
+    private static final HttpHost proxy = null;
     CertificatesManager certificatesManager;
     Verifier verifier;
-
-    private static final HttpHost proxy = null;
+    private CloseableHttpClient httpClient;
 
     @Before
     public void setup() throws Exception {
@@ -135,6 +136,25 @@ public class CertificatesManagerTest {
                     System.out.println(s);
                 }
             }
+        }
+    }
+
+    @Test
+    public void proxyFactoryTest() {
+        CertificatesManager certificatesManager = CertificatesManager.getInstance();
+        Assert.assertEquals(certificatesManager.resolveProxy(), proxy);
+        certificatesManager.setProxyFactory(new MockHttpProxyFactory());
+        HttpHost httpProxy = certificatesManager.resolveProxy();
+        Assert.assertNotEquals(httpProxy, proxy);
+        Assert.assertEquals(httpProxy.getHostName(), "127.0.0.1");
+        Assert.assertEquals(httpProxy.getPort(), 1087);
+    }
+
+    private static class MockHttpProxyFactory implements HttpProxyFactory {
+
+        @Override
+        public HttpHost buildHttpProxy() {
+            return new HttpHost("127.0.0.1", 1087);
         }
     }
 }
