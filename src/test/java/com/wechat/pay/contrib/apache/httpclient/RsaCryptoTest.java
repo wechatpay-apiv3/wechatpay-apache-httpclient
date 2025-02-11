@@ -116,8 +116,7 @@ public class RsaCryptoTest {
     @Test
     public void encryptTest() throws Exception {
         String text = "helloworld";
-        String ciphertext = RsaCryptoUtil
-                .encryptOAEP(text, verifier.getValidCertificate());
+        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getValidPublicKey());
         System.out.println("ciphertext: " + ciphertext);
     }
 
@@ -170,8 +169,7 @@ public class RsaCryptoTest {
         HttpPost httpPost = new HttpPost("https://api.mch.weixin.qq.com/v3/smartguide/guides");
 
         String text = "helloworld";
-        String ciphertext = RsaCryptoUtil
-                .encryptOAEP(text, verifier.getValidCertificate());
+        String ciphertext = RsaCryptoUtil.encryptOAEP(text, verifier.getValidPublicKey());
 
         String data = "{\n"
                 + "  \"store_id\" : 1234,\n"

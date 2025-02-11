@@ -1,5 +1,6 @@
 package com.wechat.pay.contrib.apache.httpclient;
 
+import static com.wechat.pay.contrib.apache.httpclient.constant.WechatPayHttpHeaders.WECHAT_PAY_SERIAL;
 import static org.apache.http.HttpHeaders.AUTHORIZATION;
 import static org.apache.http.HttpStatus.SC_MULTIPLE_CHOICES;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -81,6 +82,7 @@ public class SignatureExec implements ClientExecChain {
         }
         // 添加认证信息
         request.addHeader(AUTHORIZATION, credentials.getSchema() + " " + credentials.getToken(request));
+        request.addHeader(WECHAT_PAY_SERIAL, validator.getSerialNumber());
         // 执行
         CloseableHttpResponse response = mainExec.execute(route, request, context, execAware);
         // 对成功应答验签

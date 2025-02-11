@@ -5,6 +5,7 @@ import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 import com.wechat.pay.contrib.apache.httpclient.Credentials;
+import com.wechat.pay.contrib.apache.httpclient.Validator;
 import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 import com.wechat.pay.contrib.apache.httpclient.auth.Verifier;
 import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
@@ -17,6 +18,7 @@ import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.CertificateExpiredException;
@@ -67,6 +69,19 @@ public class CertificatesManager {
      * 执行定时更新平台证书的线程池
      */
     private ScheduledExecutorService executor;
+
+    private static final Validator emptyValidator =
+            new Validator() {
+                @Override
+                public boolean validate(CloseableHttpResponse response) throws IOException {
+                    return true;
+                };
+
+                @Override
+                public  String getSerialNumber() {
+                    return "";
+                }
+            };
 
     private CertificatesManager() {
     }
@@ -235,8 +250,7 @@ public class CertificatesManager {
         proxy = resolveProxy();
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(credentials)
-                .withValidator(verifier == null ? (response) -> true
-                        : new WechatPay2Validator(verifier))
+                .withValidator(verifier == null ? emptyValidator : new WechatPay2Validator(verifier))
                 .withProxy(proxy)
                 .build()) {
             HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);
@@ -297,7 +311,6 @@ public class CertificatesManager {
      * 内部验签器
      */
     private class DefaultVerifier implements Verifier {
-
         private String merchantId;
 
         private DefaultVerifier(String merchantId) {
@@ -330,7 +343,6 @@ public class CertificatesManager {
             }
         }
 
-        @Override
         public X509Certificate getValidCertificate() {
             X509Certificate certificate;
             try {
@@ -339,6 +351,16 @@ public class CertificatesManager {
                 throw new NoSuchElementException("没有有效的微信支付平台证书");
             }
             return certificate;
+        }
+
+        @Override
+        public PublicKey getValidPublicKey() {
+            return getValidCertificate().getPublicKey();
+        }
+
+        @Override
+        public String getSerialNumber() {
+            return getValidCertificate().getSerialNumber().toString(16).toUpperCase();
         }
     }
 }

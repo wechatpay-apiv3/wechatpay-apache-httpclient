@@ -4,15 +4,16 @@
 
 [微信支付API v3](https://wechatpay-api.gitbook.io/wechatpay-api-v3/)的[Apache HttpClient](https://hc.apache.org/httpcomponents-client-ga/index.html)扩展，实现了请求签名的生成和应答签名的验证。
 
-如果你是使用Apache HttpClient的商户开发者，可以使用它构造`HttpClient`。得到的`HttpClient`在执行请求时将自动携带身份认证信息，并检查应答的微信支付签名。
+> [!IMPORTANT]
+> 我们强烈建议你改为使用 [WechatPay-Java](https://github.com/wechatpay-apiv3/wechatpay-java)，该SDK同样支持 Apache HttpClient 且提供了更完善的功能，本库未来只会进行必要的修复更新。
 
 ## 项目状态
 
-当前版本`0.5.0`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
+当前版本`0.6.0`为测试版本。请商户的专业技术人员在使用时注意系统和软件的正确性和兼容性，以及带来的风险。
 
 ## 升级指引
 
-若你使用的版本为`0.3.0`，升级前请参考[升级指南](UPGRADING.md)。
+若你使用的版本为`<=0.5.0`，升级前请参考[升级指南](UPGRADING.md)。
 
 ## 环境要求
 
@@ -27,7 +28,7 @@
 在你的`build.gradle`文件中加入如下的依赖
 
 ```groovy
-implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.5.0'
+implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.6.0'
 ```
 
 ### Maven
@@ -37,17 +38,18 @@ implementation 'com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.5.0'
 <dependency>
     <groupId>com.github.wechatpay-apiv3</groupId>
     <artifactId>wechatpay-apache-httpclient</artifactId>
-    <version>0.5.0</version>
+    <version>0.6.0</version>
 </dependency>
 ```
 
 ## 名词解释
 
-+ 商户API证书，是用来证实商户身份的。证书中包含商户号、证书序列号、证书有效期等信息，由证书授权机构(Certificate Authority ，简称CA)签发，以防证书被伪造或篡改。如何获取请见[商户API证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#shang-hu-api-zheng-shu)。
-+ 商户API私钥。商户申请商户API证书时，会生成商户私钥，并保存在本地证书文件夹的文件apiclient_key.pem中。注：不要把私钥文件暴露在公共场合，如上传到Github，写在客户端代码等。
-+ 微信支付平台证书。平台证书是指由微信支付负责申请的，包含微信支付平台标识、公钥信息的证书。商户可以使用平台证书中的公钥进行应答签名的验证。获取平台证书需通过[获取平台证书列表](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu)接口下载。
-+ 证书序列号。每个证书都有一个由CA颁发的唯一编号，即证书序列号。如何查看证书序列号请看[这里](https://wechatpay-api.gitbook.io/wechatpay-api-v3/chang-jian-wen-ti/zheng-shu-xiang-guan#ru-he-cha-kan-zheng-shu-xu-lie-hao)。
-+ API v3密钥。为了保证安全性，微信支付在回调通知和平台证书下载接口中，对关键信息进行了AES-256-GCM加密。API v3密钥是加密时使用的对称密钥。商户可以在【商户平台】->【API安全】的页面设置该密钥。
++ **商户API证书**，是用来证实商户身份的。证书中包含商户号、证书序列号、证书有效期等信息，由证书授权机构(Certificate Authority ，简称CA)签发，以防证书被伪造或篡改。如何获取请见[商户API证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#shang-hu-api-zheng-shu)。
++ **商户API私钥**。商户申请商户API证书时，会生成商户私钥，并保存在本地证书文件夹的文件apiclient_key.pem中。注：不要把私钥文件暴露在公共场合，如上传到Github，写在客户端代码等。
++ **微信支付平台证书**。平台证书是指由微信支付负责申请的，包含微信支付平台标识、公钥信息的证书。商户可以使用平台证书中的公钥进行应答签名的验证。获取平台证书需通过[获取平台证书列表](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu)接口下载。
++ **微信支付公钥**。由微信支付生成，商户可以使用该公钥进行应答签名、回调签名的验证，详见：[微信支付公钥](https://pay.weixin.qq.com/doc/v3/merchant/4012153196)。
++ **证书序列号**。每个证书都有一个由CA颁发的唯一编号，即证书序列号。如何查看证书序列号请看[这里](https://wechatpay-api.gitbook.io/wechatpay-api-v3/chang-jian-wen-ti/zheng-shu-xiang-guan#ru-he-cha-kan-zheng-shu-xu-lie-hao)。
++ **API v3密钥**。为了保证安全性，微信支付在回调通知和平台证书下载接口中，对关键信息进行了AES-256-GCM加密。API v3密钥是加密时使用的对称密钥。商户可以在【商户平台】->【API安全】的页面设置该密钥。
 
 ## 开始
 
@@ -58,7 +60,7 @@ import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 //...
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
-        .withWechatPay(wechatPayCertificates);
+        .withWechatPay(wechatpayPublicKeyId, wechatPayPublicKey);
 // ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
 
 // 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签
@@ -73,7 +75,8 @@ CloseableHttpResponse response = httpClient.execute(...);
 + `merchantId`商户号。
 + `merchantSerialNumber`商户API证书的证书序列号。
 + `merchantPrivateKey`商户API私钥，如何加载商户API私钥请看[常见问题](#如何加载商户私钥)。
-+ `wechatPayCertificates`微信支付平台证书列表。你也可以使用后面章节提到的“[定时更新平台证书功能](#定时更新平台证书功能)”，而不需要关心平台证书的来龙去脉。
++ `wechatpayPublicKeyId`微信支付公钥ID，登录商户平台可获取，详见：[获取微信支付公钥](https://pay.weixin.qq.com/doc/v3/merchant/4013053249#1.-%E8%8E%B7%E5%8F%96%E5%BE%AE%E4%BF%A1%E6%94%AF%E4%BB%98%E5%85%AC%E9%92%A5)
++ `wechatPayPublicKey`微信支付公钥，登录商户平台可获取，详见：[获取微信支付公钥](https://pay.weixin.qq.com/doc/v3/merchant/4013053249#1.-%E8%8E%B7%E5%8F%96%E5%BE%AE%E4%BF%A1%E6%94%AF%E4%BB%98%E5%85%AC%E9%92%A5)
 
 ### 示例：获取平台证书
 
@@ -177,10 +180,13 @@ Credentials credentials = new WechatPay2Credentials(merchantId, new Signer() {
 });
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withCredentials(credentials)
-        .withWechatPay(wechatPayCertificates);
+        .withWechatPay(wechatpayPublicKeyId, wechatPayPublicKey);
 ```
 
 ## 定时更新平台证书功能
+
+> [!IMPORTANT]
+> 新注册的商户使用「微信支付公钥」验签，不需要下载和更新平台证书。仅尚未完全迁移至「微信支付公钥」验签的旧商户才需要此能力。
 
 版本>=`0.4.0`可使用 CertificatesManager.getVerifier(merchantId) 得到的验签器替代默认的验签器。它会定时下载和更新商户对应的[微信支付平台证书](https://wechatpay-api.gitbook.io/wechatpay-api-v3/ren-zheng/zheng-shu#ping-tai-zheng-shu) （默认下载间隔为UPDATE_INTERVAL_MINUTE）。
 
@@ -197,7 +203,7 @@ certificatesManager.putMerchant(merchantId, new WechatPay2Credentials(merchantId
 verifier = certificatesManager.getVerifier(merchantId);
 WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
         .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
-        .withValidator(new WechatPay2Validator(verifier))
+        .withValidator(new WechatPay2Validator(verifier));
 // ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
 
 // 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签，并进行证书自动更新
@@ -217,13 +223,13 @@ CloseableHttpResponse response = httpClient.execute(...);
 
 ### 加密
 
-使用` RsaCryptoUtil.encryptOAEP(String, X509Certificate)`进行公钥加密。示例代码如下。
+使用` RsaCryptoUtil.encryptOAEP(String, PublicKey publicKey)`进行公钥加密。示例代码如下。
 
 ```java
 // 建议从Verifier中获得微信支付平台证书，或使用预先下载到本地的平台证书文件中
-X509Certificate certificate = verifier.getValidCertificate();
+PublicKey publicKey = verifier.getValidPublicKey();
 try {
-  String ciphertext = RsaCryptoUtil.encryptOAEP(text, certificate);
+  String ciphertext = RsaCryptoUtil.encryptOAEP(text, publicKey);
 } catch (IllegalBlockSizeException e) {
   e.printStackTrace();
 }
@@ -277,15 +283,40 @@ try (FileInputStream ins1 = new FileInputStream(file)) {
 2. 使用`NotificationHandler`构造一个回调通知处理器，需设置验证器、apiV3密钥。调用`parse(request)`得到回调通知`notification`。
 
 示例请参考下列代码。
+
 ```java
 // 构建request，传入必要参数
- NotificationRequest request = new NotificationRequest.Builder().withSerialNumber(wechatPaySerial)
+NotificationRequest request = new NotificationRequest.Builder().withSerialNumber(wechatPaySerial)
         .withNonce(nonce)
         .withTimestamp(timestamp)
         .withSignature(signature)
         .withBody(body)
         .build();
-NotificationHandler handler = new NotificationHandler(verifier, apiV3Key.getBytes(StandardCharsets.UTF_8));
+
+// 如果已经初始化了 NotificationHandler 则直接使用，否则根据具体情况创建一个
+
+// 1. 如果你使用的是微信支付公私钥，则使用公钥初始化 Verifier 以创建 NotificationHandler
+NotificationHandler handler = new NotificationHandler(
+        new PublicKeyVerifier(wechatPayPublicKeyId, wechatPayPublicKey),
+        apiV3Key.getBytes(StandardCharsets.UTF_8)
+);
+
+// 2. 如果你使用的事微信支付平台证书，则从 CertificatesManager 获取 Verifier 以创建 NotificationHandler
+NotificationHandler handler = new NotificationHandler(
+        certificatesManager.getVerifier(merchantId),
+        apiV3Key.getBytes(StandardCharsets.UTF_8)
+);
+
+// 3. 如果你正在进行微信支付平台证书到微信支付公私钥的灰度切换，希望保持切换兼容，则需要使用 MixVerifier 创建 NotificationHandler
+Verifier mixVerifier = new MixVerifier(
+        new PublicKeyVerifier(wechatPayPublicKeyId, wechatPayPublicKey),
+        certificatesManager.getVerifier(merchantId)
+);
+NotificationHandler handler = new NotificationHandler(
+        mixVerifier,
+        apiV3Key.getBytes(StandardCharsets.UTF_8)
+);
+
 // 验签和解析请求体
 Notification notification = handler.parse(request);
 // 从notification中获取解密报文
@@ -306,11 +337,11 @@ System.out.println(notification.getDecryptData());
 商户申请商户API证书时，会生成商户私钥，并保存在本地证书文件夹的文件`apiclient_key.pem`中。商户开发者可以使用方法`PemUtil.loadPrivateKey()`加载证书。
 
 ```java
-# 示例：私钥存储在文件
+// 示例：私钥存储在文件
 PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
         new FileInputStream("/path/to/apiclient_key.pem"));
 
-# 示例：私钥为String字符串
+// 示例：私钥为String字符串
 PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(
         new ByteArrayInputStream(privateKey.getBytes("utf-8")));
 ```

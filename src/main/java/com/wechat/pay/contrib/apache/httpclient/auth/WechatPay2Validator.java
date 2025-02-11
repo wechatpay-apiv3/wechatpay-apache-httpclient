@@ -67,6 +67,11 @@ public class WechatPay2Validator implements Validator {
         return true;
     }
 
+    @Override
+    public final String getSerialNumber() {
+        return verifier.getSerialNumber();
+    }
+
     protected final void validateParameters(CloseableHttpResponse response) {
         Header firstHeader = response.getFirstHeader(REQUEST_ID);
         if (firstHeader == null) {

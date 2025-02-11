@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import javax.crypto.BadPaddingException;
@@ -23,9 +24,17 @@ public class RsaCryptoUtil {
     }
 
     public static String encrypt(String message, X509Certificate certificate, String transformation) throws IllegalBlockSizeException {
+        return encrypt(message, certificate.getPublicKey(), transformation);
+    }
+
+    public static String encryptOAEP(String message, PublicKey publicKey) throws IllegalBlockSizeException {
+        return encrypt(message, publicKey, TRANSFORMATION);
+    }
+
+    public static String encrypt(String message, PublicKey publicKey, String transformation) throws IllegalBlockSizeException {
         try {
             Cipher cipher = Cipher.getInstance(transformation);
-            cipher.init(Cipher.ENCRYPT_MODE, certificate.getPublicKey());
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey);
             byte[] data = message.getBytes(StandardCharsets.UTF_8);
             byte[] ciphertext = cipher.doFinal(data);
             return Base64.getEncoder().encodeToString(ciphertext);
