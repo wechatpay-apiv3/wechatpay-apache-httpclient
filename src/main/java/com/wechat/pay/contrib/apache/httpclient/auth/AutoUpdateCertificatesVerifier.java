@@ -7,12 +7,14 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wechat.pay.contrib.apache.httpclient.Credentials;
+import com.wechat.pay.contrib.apache.httpclient.Validator;
 import com.wechat.pay.contrib.apache.httpclient.WechatPayHttpClientBuilder;
 import com.wechat.pay.contrib.apache.httpclient.util.AesUtil;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.PublicKey;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
@@ -57,6 +59,19 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     protected volatile Instant lastUpdateTime;
     protected CertificatesVerifier verifier;
 
+    private static final Validator emptyValidator =
+            new Validator() {
+                @Override
+                public boolean validate(CloseableHttpResponse response) throws IOException {
+                    return true;
+                };
+
+                @Override
+                public  String getSerialNumber() {
+                    return "";
+                }
+            };
+
     public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key) {
         this(credentials, apiV3Key, TimeUnit.HOURS.toMinutes(1));
     }
@@ -94,14 +109,19 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     }
 
     @Override
-    public X509Certificate getValidCertificate() {
-        return verifier.getValidCertificate();
+    public PublicKey getValidPublicKey() {
+        return verifier.getValidPublicKey();
+    }
+
+    @Override
+    public String getSerialNumber() {
+        return verifier.getSerialNumber();
     }
 
     protected void autoUpdateCert() throws IOException, GeneralSecurityException {
         try (CloseableHttpClient httpClient = WechatPayHttpClientBuilder.create()
                 .withCredentials(credentials)
-                .withValidator(verifier == null ? (response) -> true : new WechatPay2Validator(verifier))
+                .withValidator(verifier == null ? emptyValidator : new WechatPay2Validator(verifier))
                 .build()) {
 
             HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);

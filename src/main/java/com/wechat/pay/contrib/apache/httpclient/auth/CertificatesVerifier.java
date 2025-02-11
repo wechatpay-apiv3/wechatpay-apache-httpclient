@@ -3,6 +3,7 @@ package com.wechat.pay.contrib.apache.httpclient.auth;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.CertificateExpiredException;
@@ -67,7 +68,6 @@ public class CertificatesVerifier implements Verifier {
         return verify(cert, message, signature);
     }
 
-    @Override
     public X509Certificate getValidCertificate() {
         X509Certificate latestCert = null;
         for (X509Certificate x509Cert : certificates.values()) {
@@ -82,6 +82,17 @@ public class CertificatesVerifier implements Verifier {
         } catch (CertificateExpiredException | CertificateNotYetValidException e) {
             throw new NoSuchElementException("没有有效的微信支付平台证书");
         }
+    }
+
+
+    @Override
+    public PublicKey getValidPublicKey() {
+        return getValidCertificate().getPublicKey();
+    }
+
+    @Override
+    public String getSerialNumber() {
+        return getValidCertificate().getSerialNumber().toString(16).toUpperCase();
     }
 }
 

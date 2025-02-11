@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -43,9 +44,11 @@ public class HttpClientBuilderTest {
     // 你的商户私钥
     private static final String privateKey = "-----BEGIN PRIVATE KEY-----\n"
             + "-----END PRIVATE KEY-----";
-    // 你的微信支付平台证书
-    private static final String certificate = "-----BEGIN CERTIFICATE-----\n"
-            + "-----END CERTIFICATE-----";
+    // 微信支付公钥
+    private static final String wechatPayPublicKeyStr = "-----BEGIN PUBLIC KEY-----\n"
+            + "-----END PUBLIC KEY-----";
+    // 微信支付公钥ID
+    private static final String wechatpayPublicKeyId = "PUB_KEY_ID_";
     private CloseableHttpClient httpClient;
 
     private static final HttpHost proxy = null;
@@ -53,15 +56,11 @@ public class HttpClientBuilderTest {
     @Before
     public void setup() {
         PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
-        X509Certificate wechatPayCert = PemUtil.loadCertificate(
-                new ByteArrayInputStream(certificate.getBytes(StandardCharsets.UTF_8)));
-
-        ArrayList<X509Certificate> wechatPayCertificates = new ArrayList<>();
-        wechatPayCertificates.add(wechatPayCert);
+        PublicKey wechatPayPublicKey = PemUtil.loadPublicKey(wechatPayPublicKeyStr);
 
         httpClient = WechatPayHttpClientBuilder.create()
                 .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
-                .withWechatPay(wechatPayCertificates)
+                .withWechatPay(wechatpayPublicKeyId, wechatPayPublicKey)
                 .withProxy(proxy)
                 .build();
     }
@@ -81,18 +80,6 @@ public class HttpClientBuilderTest {
 
         doSend(httpGet, null, response -> assertEquals(SC_OK, response.getStatusLine().getStatusCode()));
 
-    }
-
-    @Test
-    public void getCertificatesWithoutCertTest() throws Exception {
-        PrivateKey merchantPrivateKey = PemUtil.loadPrivateKey(privateKey);
-
-        httpClient = WechatPayHttpClientBuilder.create()
-                .withMerchant(merchantId, merchantSerialNumber, merchantPrivateKey)
-                .withValidator(response -> true)
-                .build();
-
-        getCertificateTest();
     }
 
     @Test
