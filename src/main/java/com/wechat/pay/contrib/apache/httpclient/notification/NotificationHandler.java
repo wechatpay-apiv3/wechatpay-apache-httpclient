@@ -78,7 +78,7 @@ public NotificationHandler(Verifier verifier, byte[] apiV3Key) {
      * @return 解析结果
      * @throws ParseException 解析body失败
      */
-    private Notification parseBody(String body) throws ParseException {
+    public Notification parseBody(String body) throws ParseException {
         ObjectReader objectReader = objectMapper.reader();
         Notification notification;
         try {
@@ -97,7 +97,7 @@ public NotificationHandler(Verifier verifier, byte[] apiV3Key) {
      * @param notification 通知结果
      * @throws ParseException 参数不合法
      */
-    private void validateNotification(Notification notification) throws ParseException {
+    public void validateNotification(Notification notification) throws ParseException {
         if (notification == null) {
             throw new ParseException("body解析为空");
         }
@@ -149,7 +149,7 @@ public NotificationHandler(Verifier verifier, byte[] apiV3Key) {
      * @param notification 解析body得到的通知结果
      * @throws ParseException 解析body失败
      */
-    private void setDecryptData(Notification notification) throws ParseException {
+    public void setDecryptData(Notification notification) throws ParseException {
 
         Resource resource = notification.getResource();
         String getAssociateddData = "";
